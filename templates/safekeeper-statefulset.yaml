@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: safekeeper
+spec:
+    selector:
+        matchLabels:
+            app: safekeeper
+    serviceName: safekeeper
+    replicas: 3
+    template:
+        metadata:
+            labels:
+                app: safekeeper
+        spec:
+            containers:
+            - name: safekeeper
+                image: neondatabase/neon:lastest
+                ports:
+                - containerPort: 7676
+                env:
+                - name: SAFEKEEPER_ADVERTISE_URL
+                    value: http://safekeeper:50051
+                - name: SAFEKEEPER_ID
+                    value: 3
+                - name: aws_access_key_id
+                    value: <your-aws-access-key-id>
+                - name: secret_access_key
+                    value: <your-secret-access-key>
+                command: ["safekeeper --listen-pg=$$SAFEKEEPER_ADVERTISE_URL
+                    --listen-http='0.0.0.0:7676'
+                    --id=$$SAFEKEEPER_ID
+                    --broker-endpoint=$$BROKER_ENDPOINT
+                    -D /data
+                    --remote-storage=\"{endpoint='http://minio:9000',
+                                        bucket_name='neon',
+                                        bucket_region='eu-north-1',
+                                        prefix_in_bucket='/safekeeper/'}\""]
+    volumeClaimTemplates:
+    - metadata:
+            name: data
+        spec:
+            accessModes: [ "ReadWriteOnce" ]
+            resources:
+                requests:
+                    storage: 1Gi
