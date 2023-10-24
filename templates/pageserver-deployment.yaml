@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pageserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pageserver
+  template:
+    metadata:
+      labels:
+        app: pageserver
+    spec:
+      containers:
+      - name: pageserver
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        ports:
+        - containerPort: 9898
+        command: [
+          "/usr/local/bin/pageserver",
+          -D /data/.neon/
+                                   -c \"broker_endpoint=$$BROKER_ENDPOINT\"
+                                   -c \"listen_pg_addr='0.0.0.0:6400'\"
+                                   -c \"listen_http_addr='0.0.0.0:9898'\"
+                                   -c \"remote_storage={endpoint='http://minio:9000',
+                                                        bucket_name='neon',
+                                                        bucket_region='eu-north-1',
+                                                        prefix_in_bucket='/pageserver/'}\""
+          ]

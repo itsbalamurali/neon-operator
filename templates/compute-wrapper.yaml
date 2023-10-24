@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: compute
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: compute
+    template:
+        metadata:
+            labels:
+                app: compute
+        spec:
+            containers:
+            - name: compute
+                image: your-compute-image
+                env:
+                - name: REPOSITORY
+                    value: neondatabase
+                - name: COMPUTE_IMAGE
+                    value: compute-node-v16
+                - name: TAG
+                    value: latest
+                - name: http_proxy
+                    value: ""
+                - name: https_proxy
+                    value: ""
+                ports:
+                - containerPort: 3080
+                - containerPort: 55433
