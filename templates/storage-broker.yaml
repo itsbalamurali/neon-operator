@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: storage-broker
   labels:
-    {{- include "neon.labels" . | nindent 4 }}}
+    {{- include "neon.labels" . | nindent 4 }}
     app: storage-broker
 spec:
   replicas: 1
@@ -18,9 +18,12 @@ spec:
       containers:
       - name: storage-broker
         image: {{ .Values.storageBroker.image.repository }}:{{ .Values.storageBroker.image.tag }}
+        imagePullPolicy: {{ .Values.storageBroker.image.pullPolicy }}
         command: ["storage_broker", "--listen-addr=0.0.0.0:50051"]
         ports:
         - containerPort: 50051
+        resources:
+          {{- toYaml .Values.storageBroker.resources | nindent 12 }}
 ---
 apiVersion: v1
 kind: Service

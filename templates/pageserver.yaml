@@ -86,7 +86,7 @@ spec:
           "-D", "/data/.neon/",
           "-c","id=0",
           "-c","broker_endpoint='http://storage-broker.{{.Release.Namespace}}.svc.cluster.local:50051'",
-          "-c","remote_storage={endpoint='http://minio.{{.Release.Namespace}}.svc.cluster.local:9000',bucket_name='neon',bucket_region='eu-north-1',prefix_in_bucket='/pageserver/'}",
+          "-c","remote_storage={endpoint='{{.Values.storage.awsS3Endpoint}}',bucket_name='{{.Values.storage.awsS3Bucket}}',bucket_region='{{.Values.storage.awsRegion}}',prefix_in_bucket='{{.Values.storage.pageserverStoragePathPrefix}}'}",
           ]
         volumeMounts:
         - mountPath: "/data/.neon/"
@@ -94,13 +94,20 @@ spec:
       containers:
       - name: pageserver
         image: {{ .Values.pageserver.image.repository }}:{{ .Values.pageserver.image.tag }}
+        imagePullPolicy: {{ .Values.pageserver.image.pullPolicy }}
         env:
         - name: BROKER_ENDPOINT
           value: "http://storage-broker.{{.Release.Namespace}}.svc.cluster.local:50051"
         - name: AWS_ACCESS_KEY_ID
-          value: {{ .Values.awsAccessKeyId }}
+          valueFrom:
+            secretKeyRef:
+              name: neon-credentials
+              key: AWS_ACCESS_KEY_ID
         - name: AWS_SECRET_ACCESS_KEY
-          value: {{ .Values.awsSecretAccessKey }}
+          valueFrom:
+            secretKeyRef:
+              name: neon-credentials
+              key: AWS_SECRET_ACCESS_KEY
         ports:
         - containerPort: 9898
         - containerPort: 6400
@@ -111,6 +118,8 @@ spec:
         #   subPath: pageserver.toml
         - mountPath: "/data/.neon/"
           name: pageserver-data-volume
+        resources:
+          {{- toYaml .Values.pageserver.resources | nindent 12 }}
       volumes:
       - name: pageserver-config-volume
         configMap:

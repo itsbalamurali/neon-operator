@@ -16,25 +16,10 @@ spec:
       labels:
         app: minio
     spec:
-      initContainers:
-      - name: init-minio
-        image: minio/mc
-        command: ["/bin/sh", "-c"]
-        args: 
-          - "until (/usr/bin/mc alias set minio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD) do
-             echo 'Waiting to start minio...' && sleep 1;
-             done;
-             /usr/bin/mc mb minio/neon --region=eu-north-1;
-             exit 0;"
-        env:
-        - name: MINIO_ROOT_USER
-          value: minio
-        - name: MINIO_ROOT_PASSWORD
-          value: minio123
       containers:
       - name: minio
         image: quay.io/minio/minio:RELEASE.2022-10-20T00-55-09Z
-        args: ["server","/data","--address :9000","--console-address :9001"]
+        args: ["server","/data","--address",":9000","--console-address", ":9001"]
         env:
         - name: MINIO_ROOT_USER
           value: minio
@@ -46,6 +31,20 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
+      # - name: init-minio
+      #   image: minio/mc
+      #   command: ["/bin/sh", "-c"]
+      #   args: 
+      #     - "until (/usr/bin/mc alias set minio http://minio.{{.Release.Namespace}}.svc.cluster.local:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD) do
+      #        echo 'Waiting to start minio...' && sleep 1;
+      #        done;
+      #        /usr/bin/mc mb minio/neon --region=eu-north-1;
+      #        exit 0;"
+      #   env:
+      #   - name: MINIO_ROOT_USER
+      #     value: minio
+      #   - name: MINIO_ROOT_PASSWORD
+      #     value: minio123
       volumes:
       - name: data
         emptyDir: {}
@@ -61,4 +60,4 @@ spec:
     - name: http
       port: 9000
       targetPort: 9000
-{{end}}
+{{- end -}}

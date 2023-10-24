@@ -1,3 +1,4 @@
+{{- if .Values.controlPanel.create -}}
 #NOTE: Not part of Neon, just way to emulate control plane api server.
 apiVersion: apps/v1
 kind: Deployment
@@ -43,3 +44,5 @@ spec:
     port: 80
     targetPort: 1234
     protocol: TCP
+
+{{- end -}}

@@ -25,6 +25,7 @@ spec:
       containers:
         - name: compute-node
           image: {{ .Values.computeNode.image.repository }}:{{ .Values.computeNode.image.tag }}
+          imagePullPolicy: {{ .Values.computeNode.image.pullPolicy }}
           command: ["compute_ctl",
           "-D","/var/db/postgres/compute",
           "-C", "postgresql://cloud_admin@0.0.0.0:55433/postgres",
@@ -37,6 +38,8 @@ spec:
           volumeMounts:
             - name: computespec-volume
               mountPath: /var/compute/config
+          resources:
+            {{- toYaml .Values.computeNode.resources | nindent 12}}
       volumes:
         - name: computespec-volume
           configMap:

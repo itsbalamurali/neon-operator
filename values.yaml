@@ -1,13 +1,21 @@
 # Default values for neon.
 # This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-awsS3Endpoint: "http://minio:9000"
-awsAccessKeyId: "minio"
-awsSecretAccessKey: "minio123"
+storage:
+  awsS3Endpoint: "http://minio:9000"
+  awsS3Bucket: "neon"
+  awsRegion: "eu-north-1"
+  pageserverStoragePathPrefix: "/pageserver/"
+  safekeeperStoragePathPrefix: "/safekeeper/"
+  awsAccessKeyId: "minio"
+  awsSecretAccessKey: "minio123"
 
 minio:
-  create: true
+  create: false
+  username: "minio"
+  password: "minio123"
+
+controlPanel:
+  create: false
 
 imagePullSecrets: []
 nameOverride: ""
@@ -54,6 +62,10 @@ pageserver:
   service:
     type: ClusterIP
     port: 9898
+  storage:
+    size: 1Gi
+    storageClass: "standard"
+    accessMode: "ReadWriteOnce"
 
 safekeeper:
   replicaCount: 3
@@ -61,12 +73,23 @@ safekeeper:
     repository: neondatabase/neon
     pullPolicy: IfNotPresent
     tag: "latest"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
   nodeSelector: {}
   tolerations: []
   affinity: {}
   service:
     type: ClusterIP
     port: 80
+  storage:
+    size: 1Gi
+    storageClass: "standard"
+    accessMode: "ReadWriteOnce"
 
 storageBroker:
   replicaCount: 1
@@ -74,12 +97,23 @@ storageBroker:
     repository: neondatabase/neon
     pullPolicy: IfNotPresent
     tag: "latest"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
   nodeSelector: {}
   tolerations: []
   affinity: {}
   service:
     type: ClusterIP
     port: 80
+  storage:
+    size: 1Gi
+    storageClass: "standard"
+    accessMode: "ReadWriteOnce"
 
 computeNode:
   replicaCount: 1
@@ -100,3 +134,7 @@ computeNode:
   service:
     type: ClusterIP
     port: 80
+  storage:
+    size: 1Gi
+    storageClass: "standard"
+    accessMode: "ReadWriteOnce"
