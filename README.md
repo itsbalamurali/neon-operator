@@ -26,6 +26,6 @@ helm install <release-name> neondatabase/neon
 ```
 
 ## TODO:
-[] Cleanup (variables and values etc., currently there is a bunch of hardcoded stuff)
-[] Metrics (PodMonitor)
-[] Create a control-plane operator to be able to control tenants and their timelines using k8s crds and store the state to etcd.
+- [ ] Cleanup (variables and values etc., currently there is a bunch of hardcoded stuff).
+- [ ] Metrics (PodMonitor).
+- [ ] Create a control-plane operator to be able to control tenants and their timelines using k8s crds and store the state to etcd.
