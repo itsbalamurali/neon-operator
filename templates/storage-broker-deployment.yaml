@@ -16,15 +16,15 @@ spec:
         spec:
             containers:
             - name: storage-broker
-                image: your-storage-broker-image
-                ports:
-                - containerPort: 8080
-                env:
-                - name: STORAGE_BROKER_PORT
-                    value: "8080"
-                - name: STORAGE_BROKER_DB_URL
-                    value: "your-db-url"
-                - name: STORAGE_BROKER_DB_USERNAME
-                    value: "your-db-username"
-                - name: STORAGE_BROKER_DB_PASSWORD
-                    value: "your-db-password"
+            image: neondatabase/storage-broker:latest
+            ports:
+            - containerPort: 8080
+            env:
+            - name: STORAGE_BROKER_PORT
+              value: "8080"
+            - name: STORAGE_BROKER_DB_URL
+              value: "your-db-url"
+            - name: STORAGE_BROKER_DB_USERNAME
+              value: "your-db-username"
+            - name: STORAGE_BROKER_DB_PASSWORD
+              value: "your-db-password"

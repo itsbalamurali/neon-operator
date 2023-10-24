@@ -14,18 +14,18 @@ spec:
         spec:
             containers:
             - name: compute
-                image: your-compute-image
-                env:
-                - name: REPOSITORY
-                    value: neondatabase
-                - name: COMPUTE_IMAGE
-                    value: compute-node-v16
-                - name: TAG
-                    value: latest
-                - name: http_proxy
-                    value: ""
-                - name: https_proxy
-                    value: ""
-                ports:
-                - containerPort: 3080
-                - containerPort: 55433
+            image: your-compute-image
+            env:
+            - name: REPOSITORY
+              value: neondatabase
+            - name: COMPUTE_IMAGE
+              value: compute-node-v16
+            - name: TAG
+              value: latest
+            - name: http_proxy
+              value: ""
+            - name: https_proxy
+              value: ""
+            ports:
+            - containerPort: 3080
+            - containerPort: 55433
