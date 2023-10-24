@@ -1,39 +1,54 @@
+{{- if .Values.minio.create -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: minio
+  name: minio
+  labels:
+    {{- include "neon.labels" . | nindent 4 }}
+    app: minio
 spec:
-    selector:
-        matchLabels:
-            app: minio
-    replicas: 1
-    template:
-        metadata:
-            labels:
-                app: minio
-        spec:
-            containers:
-            - name: minio
-                image: quay.io/minio/minio:RELEASE.2022-10-20T00-55-09Z
-                args:
-                - server
-                - /data
-                - --address :9000
-                - --console-address :9001
-                env:
-                - name: MINIO_ROOT_USER
-                  value: minio
-                - name: MINIO_ROOT_PASSWORD
-                  value: minio123
-                ports:
-                - containerPort: 9000
-                - containerPort: 9001
-                volumeMounts:
-                - name: data
-                    mountPath: /data
-            volumes:
-            - name: data
-                emptyDir: {}
+  selector:
+    matchLabels:
+      app: minio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      initContainers:
+      - name: init-minio
+        image: minio/mc
+        command: ["/bin/sh", "-c"]
+        args: 
+          - "until (/usr/bin/mc alias set minio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD) do
+             echo 'Waiting to start minio...' && sleep 1;
+             done;
+             /usr/bin/mc mb minio/neon --region=eu-north-1;
+             exit 0;"
+        env:
+        - name: MINIO_ROOT_USER
+          value: minio
+        - name: MINIO_ROOT_PASSWORD
+          value: minio123
+      containers:
+      - name: minio
+        image: quay.io/minio/minio:RELEASE.2022-10-20T00-55-09Z
+        args: ["server","/data","--address :9000","--console-address :9001"]
+        env:
+        - name: MINIO_ROOT_USER
+          value: minio
+        - name: MINIO_ROOT_PASSWORD
+          value: minio123
+        ports:
+        - containerPort: 9000
+        - containerPort: 9001
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -44,5 +59,6 @@ spec:
         app: minio
     ports:
     - name: http
-        port: 9000
-        targetPort: 9000
+      port: 9000
+      targetPort: 9000
+{{end}}

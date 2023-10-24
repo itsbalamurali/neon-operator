@@ -6,6 +6,9 @@ awsS3Endpoint: "http://minio:9000"
 awsAccessKeyId: "minio"
 awsSecretAccessKey: "minio123"
 
+minio:
+  create: true
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

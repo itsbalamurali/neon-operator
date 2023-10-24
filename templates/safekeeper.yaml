@@ -25,6 +25,10 @@ spec:
       labels:
         app: safekeeper
     spec:
+      initContainers:
+      - name: storage-broker-wait
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup storage-broker.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for storage-broker; sleep 2; done"]
       containers:
       - name: safekeeper
         image: {{ .Values.safekeeper.image.repository }}:{{ .Values.safekeeper.image.tag }}

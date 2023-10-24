@@ -15,6 +15,13 @@ spec:
       labels:
         app: compute-node
     spec:
+      initContainers:
+      - name: safekeeper-wait
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup safekeeper-0.safekeeper.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for safekeeper; sleep 2; done"]
+      - name: pageserver-wait
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup pageserver.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for pageserver; sleep 2; done"]
       containers:
         - name: compute-node
           image: {{ .Values.computeNode.image.repository }}:{{ .Values.computeNode.image.tag }}

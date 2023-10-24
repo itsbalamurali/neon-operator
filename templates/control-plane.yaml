@@ -25,7 +25,7 @@ spec:
         #   "0.0.0.0:1234",
         #   "--path","/data/spec.json"]
         ports:
-        - containerPort: 1234
+        - containerPort: 80
         resources:
           limits:
             cpu: 100m
@@ -40,6 +40,6 @@ spec:
     app: control-plane
   ports:
   - name: http
-    port: 1234
+    port: 80
     targetPort: 1234
     protocol: TCP
