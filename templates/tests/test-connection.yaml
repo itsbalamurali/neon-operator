@@ -10,6 +10,6 @@ spec:
   containers:
     - name: wget
       image: busybox
-      command: [ 'wget' ]
-      args: [ '{{ include "neon.fullname" . }}:{{ .Values.service.port }}' ]
+      # command: [ 'wget' ]
+      # args: [ '{{ include "neon.fullname" . }}:{{ .Values.pageserver.service.port }}' ]
   restartPolicy: Never

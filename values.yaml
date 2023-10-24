@@ -2,8 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-awsAccessKeyId: "test"
-awsSecretAccessKey: "test"
+awsS3Endpoint: "http://minio:9000"
+awsAccessKeyId: "minio"
+awsSecretAccessKey: "minio123"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -49,7 +50,7 @@ pageserver:
       memory: 128Mi
   service:
     type: ClusterIP
-    port: 80
+    port: 9898
 
 safekeeper:
   replicaCount: 3

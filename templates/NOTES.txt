@@ -19,7 +19,7 @@
 
 Successfully installed neon serverless postgres.
 
-Compute Node Service URL: compute-node.{{}}.svc.cluster.local:55433
+Compute Node Service URL: compute-node.{{.Release.Namespace}}.svc.cluster.local:55433
 
 Safekeeper URLs:
  safekeeper-0.safekeeper.{{.Release.Namespace}}.svc.cluster.local:5454

@@ -77,17 +77,27 @@ spec:
       initContainers:
       #TODO: only init if config is not present.
       - name: pageserver-init
-        image: {{ .Values.pageserver.image.repository }}:{{ .Values.pageserver.image.tag }
+        image: {{ .Values.pageserver.image.repository }}:{{ .Values.pageserver.image.tag }}
         command: ["pageserver",
          "--init",
           "-D", "/data/.neon/",
-          "-c","id=0","-c","broker_endpoint='http://storage-broker.{{.Release.Namespace}}.svc.cluster.local:50051'",]
+          "-c","id=0",
+          "-c","broker_endpoint='http://storage-broker.{{.Release.Namespace}}.svc.cluster.local:50051'",
+          "-c","remote_storage={endpoint='http://minio.{{.Release.Namespace}}.svc.cluster.local:9000',bucket_name='neon',bucket_region='eu-north-1',prefix_in_bucket='/pageserver/'}",
+          ]
         volumeMounts:
         - mountPath: "/data/.neon/"
           name: pageserver-data-volume
       containers:
       - name: pageserver
-        image: neondatabase/neon:latest
+        image: {{ .Values.pageserver.image.repository }}:{{ .Values.pageserver.image.tag }}
+        env:
+        - name: BROKER_ENDPOINT
+          value: "http://storage-broker.{{.Release.Namespace}}.svc.cluster.local:50051"
+        - name: AWS_ACCESS_KEY_ID
+          value: {{ .Values.awsAccessKeyId }}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{ .Values.awsSecretAccessKey }}
         ports:
         - containerPort: 9898
         - containerPort: 6400

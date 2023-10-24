@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: minio
+spec:
+    selector:
+        matchLabels:
+            app: minio
+    replicas: 1
+    template:
+        metadata:
+            labels:
+                app: minio
+        spec:
+            containers:
+            - name: minio
+                image: quay.io/minio/minio:RELEASE.2022-10-20T00-55-09Z
+                args:
+                - server
+                - /data
+                - --address :9000
+                - --console-address :9001
+                env:
+                - name: MINIO_ROOT_USER
+                  value: minio
+                - name: MINIO_ROOT_PASSWORD
+                  value: minio123
+                ports:
+                - containerPort: 9000
+                - containerPort: 9001
+                volumeMounts:
+                - name: data
+                    mountPath: /data
+            volumes:
+            - name: data
+                emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: minio
+spec:
+    selector:
+        app: minio
+    ports:
+    - name: http
+        port: 9000
+        targetPort: 9000
