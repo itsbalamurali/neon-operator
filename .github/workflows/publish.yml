@@ -19,13 +19,15 @@ jobs:
       uses: azure/setup-helm@v3
 
     - name: Validate Helm Chart
+      working-directory: charts/neon
       run: helm lint .
 
     - name: Create Kind Cluster
       uses: helm/kind-action@v1.8.0
 
     - name: Apply Helm Chart
-      run: helm install neondb .
+      working-directory: charts/neon
+      run: helm install neon .
 
     - name: Configure Git
       run: |
@@ -33,6 +35,7 @@ jobs:
         git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
     - name: Package Helm Chart
+      working-directory: charts/neon
       run: helm package .
 
     - name: Publish Helm Chart
