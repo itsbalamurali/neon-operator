@@ -1,0 +1,34 @@
+name: Publish Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+
+    - name: Validate Helm Chart
+      run: helm lint .
+
+    - name: Create Kind Cluster
+      uses: helm/kind-action@v1.5.0
+
+    - name: Apply Helm Chart
+      run: helm install neondb .
+
+    - name: Package Helm Chart
+      run: helm package .
+
+    - name: Publish Helm Chart
+      uses: helm/chart-releaser-action@v1.5.0
+      env:
+        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
