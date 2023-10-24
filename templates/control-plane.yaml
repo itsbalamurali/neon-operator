@@ -1,0 +1,45 @@
+#NOTE: Not part of Neon, just way to emulate control plane api server.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: control-plane
+  labels:
+    {{- include "neon.labels" . | nindent 4 }}
+    app: control-plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: control-plane
+  template:
+    metadata:
+      labels:
+        app: control-plane
+    spec:
+      containers:
+      - name: control-plane
+        image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        # command: ["attachment_service",
+        #   "--listen",
+        #   "0.0.0.0:1234",
+        #   "--path","/data/spec.json"]
+        ports:
+        - containerPort: 1234
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: control-plane
+spec:
+  selector:
+    app: control-plane
+  ports:
+  - name: http
+    port: 1234
+    targetPort: 1234
+    protocol: TCP

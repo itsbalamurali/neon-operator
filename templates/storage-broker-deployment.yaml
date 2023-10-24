@@ -1,30 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: storage-broker
-    labels:
-        app: storage-broker
+  name: storage-broker
+  labels:
+    {{- include "neon.labels" . | nindent 4 }}}
+    app: storage-broker
 spec:
-    replicas: 1
-    selector:
-        matchLabels:
-            app: storage-broker
-    template:
-        metadata:
-            labels:
-                app: storage-broker
-        spec:
-            containers:
-            - name: storage-broker
-            image: neondatabase/storage-broker:latest
-            ports:
-            - containerPort: 8080
-            env:
-            - name: STORAGE_BROKER_PORT
-              value: "8080"
-            - name: STORAGE_BROKER_DB_URL
-              value: "your-db-url"
-            - name: STORAGE_BROKER_DB_USERNAME
-              value: "your-db-username"
-            - name: STORAGE_BROKER_DB_PASSWORD
-              value: "your-db-password"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-broker
+  template:
+    metadata:
+      labels:
+        app: storage-broker
+    spec:
+      containers:
+      - name: storage-broker
+        image: {{ .Values.storageBroker.image.repository }}:{{ .Values.storageBroker.image.tag }}
+        command: ["storage_broker", "--listen-addr=0.0.0.0:50051"]
+        ports:
+        - containerPort: 50051
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-broker
+spec:
+  selector:
+    app: storage-broker
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+---
