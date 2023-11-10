@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: database
+---
+apiVersion: neon.tech/v1alpha1
+kind: NeonDeployment
+metadata:
+  name: deployment-sample
+  namespace: database
+spec:
+  enableNeonProxy: false
+  enableAutoScaling: false
+  storageConfig:
+    endpoint: "http://minio:9000"
+    bucketName: "neondb"
+    bucketRegion: "us-east-1"
+    prefixInBucket: "neondb"
+    credentials:
+      awsAccessKeyID: "accessKey"
+      awsSecretAccessKey: "secretKey"
+  controlPlane:
+    replicas: 1
+  pageServer:
+    replicas: 3
+    # image: neondb/pageserver:latest
+    # imagePullPolicy: Always
+    # resources:
+    #   limits:
+    #     cpu: 100m
+    #     memory: 100Mi
+    #   requests:
+    #     cpu: 100m
+    #     memory: 100Mi
+  safeKeeper:
+    replicas: 3
+    # image: neondb/safekeeper:latest
+    # imagePullPolicy: Always
+    # resources:
+    #   limits:
+    #     cpu: 100m
+    #     memory: 100Mi
+    #   requests:
+    #     cpu: 100m
+    #     memory: 100Mi
+  computeNode:
+    replicas: 3
+    # image: neondatabase/compute-node-v16
+    # imagePullPolicy: Always
+    # resources:
+    #   limits:
+    #     cpu: 100m
+    #     memory: 100Mi
+    #   requests:
+    #     cpu: 100m
+    #     memory: 100Mi
+  storageBroker:
+    replicas: 1
+    # image: neondb/storagebroker:latest
+    # imagePullPolicy: Always
+    # resources:
+    #   limits:
+    #     cpu: 100m
+    #     memory: 100Mi
+    #   requests:
+    #     cpu: 100m
+    #     memory: 100Mi

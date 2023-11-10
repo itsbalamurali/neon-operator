@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: neon-operator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neon-operator
+  namespace: neon-operator
+  labels:
+    name: neon-operator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: neon-operator
+    spec:
+      serviceAccountName: neon-operator
+      containers:
+      - name: neon-operator
+        image: ghcr.io/itsbalamurali/neon-helm:main
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        # readinessProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: 8080
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+  selector:
+    matchLabels:
+      name: neon-operator
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: neon-operator
+  namespace: neon-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: neon-operator
+rules:
+- apiGroups: ['kopf.dev']
+  resources: ['clusterkopfpeerings']
+  verbs: ['list', 'watch', 'patch', 'get']
+- apiGroups: [apiextensions.k8s.io]
+  resources: [customresourcedefinitions]
+  verbs: [list, watch]
+- apiGroups: ['']
+  resources: [namespaces]
+  verbs: [list, watch]
+- apiGroups: [admissionregistration.k8s.io/v1, admissionregistration.k8s.io/v1beta1]
+  resources: [validatingwebhookconfigurations, mutatingwebhookconfigurations]
+  verbs: [create, patch]
+- apiGroups: [neon.tech]
+  resources: [neondeployments, neontenants, neontimelines]
+  verbs: [list, watch, get, patch, create, delete]
+- apiGroups: ['']
+  resources: [pods,secrets, services, persistentvolumeclaims]
+  verbs: [create, get, list, watch, patch, delete]
+- apiGroups: ['']
+  resources: [events]
+  verbs: [create]
+- apiGroups: [batch, extensions]
+  resources: [jobs]
+  verbs: [create, get, patch, delete]
+- apiGroups: [apps]
+  resources: [deployments, statefulsets]
+  verbs: [create, get, patch, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: neon-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: neon-operator
+subjects:
+- kind: ServiceAccount
+  name: neon-operator
+  namespace: neon-operator

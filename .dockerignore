@@ -1,0 +1,11 @@
+charts/
+venv/
+*.pyc
+__pycache__/
+.idea/
+.github/
+.git/
+*.yml
+*.yaml
+*.md
+*.json

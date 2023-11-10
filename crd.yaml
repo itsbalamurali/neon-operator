@@ -1,0 +1,182 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: neondeployments.neon.tech
+spec:
+  scope: Namespaced
+  names:
+    kind: NeonDeployment
+    plural: neondeployments
+    singular: neondeployment
+    shortNames:
+    - nd
+  group: neon.tech
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+            pattern: ^neon.tech/v1alpha1$
+          kind:
+            type: string
+            pattern: ^NeonDeployment$
+          spec:
+            type: object
+            properties:
+              enableNeonProxy:
+                type: boolean
+              enableAutoScaling:
+                type: boolean
+              storageConfig:
+                type: object
+                properties:
+                  endpoint:
+                    type: string
+                  bucketName:
+                    type: string
+                  bucketRegion:
+                    type: string
+                  prefixInBucket:
+                    type: string
+                  credentials:
+                    type: object
+                    properties:
+                      awsAccessKeyID:
+                        type: string
+                      awsSecretAccessKey:
+                        type: string
+              controlPlane:
+                type: object
+                properties:
+                  replicas:
+                    type: integer
+                  image:
+                    type: string
+                  imagePullPolicy:
+                    type: string
+                  resources:
+                    type: object
+                    properties:
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string              
+              pageServer:
+                type: object
+                properties:
+                  replicas:
+                    type: integer
+                  image:
+                    type: string
+                  imagePullPolicy:
+                    type: string
+                  resources:
+                    type: object
+                    properties:
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+              safeKeeper:
+                type: object
+                properties:
+                  replicas:
+                    type: integer
+                  image:
+                    type: string
+                  imagePullPolicy:
+                    type: string
+                  resources:
+                    type: object
+                    properties:
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+              computeNode:
+                type: object
+                properties:
+                  replicas:
+                    type: integer
+                  image:
+                    type: string
+                  imagePullPolicy:
+                    type: string
+                  resources:
+                    type: object
+                    properties:
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+              storageBroker:
+                type: object
+                properties:
+                  replicas:
+                    type: integer
+                  image:
+                    type: string
+                  imagePullPolicy:
+                    type: string
+                  resources:
+                    type: object
+                    properties:
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                          memory:
+                            type: string

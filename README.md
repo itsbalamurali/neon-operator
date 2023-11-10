@@ -1,29 +1,10 @@
-# Neon Serverless Postgres Helm Chart
-
-This Helm chart deploys a Neon serverless Postgres database.
+# Neon Serverless Postgres Operator
 
 ## License
-While this chart is [MIT License](./LICENSE), [Neon is licensed as Apache License 2.0](https://github.com/neondatabase/neon/blob/main/LICENSE).
-Only use this chart if you know what you are doing legally in agreement with NEON's license.
+[MIT License](./LICENSE), 
+[Neon is under Apache License 2.0](https://github.com/neondatabase/neon/blob/main/LICENSE).
 
-## Prerequisites
-
-Before deploying this chart, you must have the following:
-
-- A K8s cluster.
-- Helm 3 installed
-
-## Installing the Chart
-
-```bash
-helm repo add neondatabase https://itsbalamurali.github.io/neon
-```
-
-To install the chart, run the following command:
-
-```bash
-helm install <release-name> neondatabase/neon
-```
+Only use this code if you know what you are doing legally in agreement with NEON's license.
 
 ## TODO:
 - [ ] Cleanup (variables and values etc., currently there is a bunch of hardcoded stuff).
