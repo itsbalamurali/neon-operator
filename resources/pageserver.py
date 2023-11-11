@@ -47,7 +47,8 @@ def update_pageserver(
                         namespace: str,
                         resources: V1ResourceRequirements,
                         image_pull_policy: str = "IfNotPresent",
-                        image: str = "neondatabase/neon"):
+                        image: str = "neondatabase/neon",
+                        replicas: int = 3,):
     """
     Updates the pageserver resources in the kubernetes cluster
     :param kube_client: kubernetes api client
@@ -99,7 +100,8 @@ def delete_pageserver(
 def pageserver_statefulset(namespace: str,
                            resources: V1ResourceRequirements,
                            image_pull_policy: str,
-                           image: str) -> kubernetes.client.V1StatefulSet:
+                           image: str,
+                           replicas: int = 3) -> kubernetes.client.V1StatefulSet:
     """
     Creates a kubernetes statefulset for the pageserver
     :param namespace: namespace to deploy to
@@ -118,7 +120,7 @@ def pageserver_statefulset(namespace: str,
         ],
         #TODO: inject the id of the pod into the container
         command=[
-            "pageserver", "-D", "/data/.neon/", "-c", "id=$POD_INDEX", "-c",
+            "pageserver", "-D", "/data/.neon/", "-c", "id=$(POD_INDEX)", "-c",
             "broker_endpoint='http://storage-broker." + namespace + ".svc.cluster.local:50051'"
         ],
         env=[
@@ -127,7 +129,7 @@ def pageserver_statefulset(namespace: str,
                 name="POD_INDEX",
                 value_from=kubernetes.client.V1EnvVarSource(
                     field_ref=kubernetes.client.V1ObjectFieldSelector(
-                        field_path="metadata.labels['app.kubernetes.io/pod-index']",
+                        field_path="metadata.labels['apps.kubernetes.io/pod-index']",
                     ),
                 ),
             ),
@@ -184,15 +186,16 @@ def pageserver_statefulset(namespace: str,
                 kubernetes.client.V1Volume(
                     name="pageserver-data-volume",
                     persistent_volume_claim=kubernetes.client.V1PersistentVolumeClaimVolumeSource(
-                        claim_name="pageserver-data-volume",
+                        claim_name="pageserver",
                     ),
                 ),
             ]
         ),
     )
 
-    spec = kubernetes.client.V1DeploymentSpec(
-        replicas=3,
+    spec = kubernetes.client.V1StatefulSetSpec(
+        replicas=replicas,
+        service_name="pageserver",
         selector=kubernetes.client.V1LabelSelector(
             match_labels={"app": "pageserver"},
         ),
@@ -201,7 +204,7 @@ def pageserver_statefulset(namespace: str,
 
     deployment = kubernetes.client.V1StatefulSet(
         api_version="apps/v1",
-        kind="Deployment",
+        kind="StatefulSet",
         metadata=kubernetes.client.V1ObjectMeta(
             name="pageserver",
             labels={"app": "pageserver"},

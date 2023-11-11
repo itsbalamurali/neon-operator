@@ -62,6 +62,7 @@ def neon_secret(
         data={
             "AWS_ACCESS_KEY_ID": base64.b64encode(aws_access_key_id.encode("utf-8")).decode("utf-8"),
             "AWS_SECRET_ACCESS_KEY": base64.b64encode(aws_secret_access_key.encode("utf-8")).decode("utf-8"),
+            #TODO: Add JWT Tokens for Control Plane and Proxy Server etc.,
         },
     )
     return secret

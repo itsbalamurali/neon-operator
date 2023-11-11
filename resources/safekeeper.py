@@ -18,9 +18,12 @@ def deploy_safekeeper(
         image: str = "neondatabase/neon",
         replicas: int = 3,
 ):
-    deployment = safekeeper_statefulset(namespace, resources, remote_storage_bucket_endpoint,
-                                        remote_storage_bucket_name, remote_storage_bucket_region,
-                                        remote_storage_prefix_in_bucket, image_pull_policy, image, replicas)
+    deployment = safekeeper_statefulset(namespace=namespace, resources=resources, 
+                                        remote_storage_bucket_endpoint=remote_storage_bucket_endpoint,
+                                        remote_storage_bucket_name=remote_storage_bucket_name,
+                                        remote_storage_bucket_region= remote_storage_bucket_region,
+                                        remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket, 
+                                        image_pull_policy=image_pull_policy, image=image, replicas=replicas)
     kopf.adopt(deployment)
     service = safekeeper_service(namespace)
     kopf.adopt(service)
@@ -47,9 +50,11 @@ def update_safekeeper(
         image: str = "neondatabase/neon",
         replicas: int = 3,
 ):
-    deployment = safekeeper_statefulset(namespace, resources, remote_storage_bucket_endpoint,
-                                        remote_storage_bucket_name, remote_storage_bucket_region,
-                                        remote_storage_prefix_in_bucket, image_pull_policy, image, replicas)
+    deployment = safekeeper_statefulset(namespace=namespace, resources=resources, 
+                                        remote_storage_bucket_endpoint=remote_storage_bucket_endpoint,
+                                        remote_storage_bucket_name=remote_storage_bucket_name,
+                                        remote_storage_bucket_region= remote_storage_bucket_region,
+                                        remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket, image_pull_policy=image_pull_policy, image=image, replicas=replicas)
     kopf.adopt(deployment)
     service = safekeeper_service(namespace)
     kopf.adopt(service)
@@ -100,12 +105,13 @@ def safekeeper_statefulset(
                     resources=resources,
                     command=[
                         "safekeeper",
-                        "--listen-pg=0.0.0.0:5454",
-                        "--listen-http=0.0.0.0:7676",
-                        "--id=0",
-                        "--broker-endpoint=http://storage-broker." + namespace + ".svc.cluster.local:50051", "-D",
+                        "--listen-pg='0.0.0.0:5454'",
+                        "--listen-http='0.0.0.0:7676'",
+                        "--id=$(SAFEKEEPER_ID)",
+                        "--broker-endpoint=http://storage-broker." + namespace + ".svc.cluster.local:50051",
+                        "-D",
                         "/data",
-                        "--remote_storage={endpoint='" + remote_storage_bucket_endpoint + "',bucket_name='" + remote_storage_bucket_name + "',bucket_region='" + remote_storage_bucket_region + "',prefix_in_bucket='" + remote_storage_prefix_in_bucket + "'}"
+                        f"--remote-storage={{endpoint='{remote_storage_bucket_endpoint}',bucket_name='{remote_storage_bucket_name}',bucket_region='{remote_storage_bucket_region}',prefix_in_bucket='{remote_storage_prefix_in_bucket}'}}"
                     ],
                     env=[
                         # NOTE: Only works with kubernetes 1.28+
@@ -113,7 +119,7 @@ def safekeeper_statefulset(
                             name="SAFEKEEPER_ID",
                             value_from=kubernetes.client.V1EnvVarSource(
                                 field_ref=kubernetes.client.V1ObjectFieldSelector(
-                                    field_path="metadata.labels['app.kubernetes.io/pod-index']",
+                                    field_path="metadata.labels['apps.kubernetes.io/pod-index']",
                                 ),
                             ),
                         ),
@@ -159,14 +165,6 @@ def safekeeper_statefulset(
         ),
     )
 
-    spec = kubernetes.client.V1StatefulSetSpec(
-        replicas=replicas,
-        selector=kubernetes.client.V1LabelSelector(
-            match_labels={"app": "safekeeper"},
-        ),
-        template=template,
-    )
-
     deployment = kubernetes.client.V1StatefulSet(
         api_version="apps/v1",
         kind="StatefulSet",
@@ -175,7 +173,14 @@ def safekeeper_statefulset(
             namespace=namespace,
             labels={"app": "safekeeper"},
         ),
-        spec=spec,
+        spec= kubernetes.client.V1StatefulSetSpec(
+        replicas=replicas,
+        service_name="safekeeper",
+        selector=kubernetes.client.V1LabelSelector(
+            match_labels={"app": "safekeeper"},
+        ),
+        template=template,
+    )
     )
 
     return deployment

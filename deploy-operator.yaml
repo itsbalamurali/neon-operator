@@ -22,8 +22,8 @@ spec:
       serviceAccountName: neon-operator
       containers:
       - name: neon-operator
-        image: ghcr.io/itsbalamurali/neon-helm:main
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/itsbalamurali/neon-operator:main
+        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /healthz
@@ -70,7 +70,7 @@ rules:
   resources: [neondeployments, neontenants, neontimelines]
   verbs: [list, watch, get, patch, create, delete]
 - apiGroups: ['']
-  resources: [pods,secrets, services, persistentvolumeclaims]
+  resources: [pods,secrets, configmaps, services, persistentvolumeclaims]
   verbs: [create, get, list, watch, patch, delete]
 - apiGroups: ['']
   resources: [events]
