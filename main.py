@@ -204,6 +204,7 @@ def update_deployment(spec, name, namespace, **_):
 def delete_deployment(spec, name, namespace,**_):
     kopf.info(spec,reason='DeletingDeployment',message=f'Deleting {namespace}/{name}.')
     # We delete all the deployments and services
+    kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     # Delete the compute nodes
     resources.compute_node.delete_compute_node(kube_client, namespace)
