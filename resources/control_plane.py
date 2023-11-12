@@ -100,6 +100,16 @@ def control_plane_deployment(
                                 ),
                             ],
                             command=["python3", "control-plane-server.py"],
+                            env=[
+                                kubernetes.client.V1EnvVar(
+                                    name="NAMESPACE",
+                                    value_from=kubernetes.client.V1EnvVarSource(
+                                        field_ref=kubernetes.client.V1ObjectFieldSelector(
+                                            field_path="metadata.namespace",
+                                        ),
+                                    ),
+                                ),
+                            ],
                             resources=resources,
                         ),
                     ],

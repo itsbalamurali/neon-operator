@@ -23,8 +23,6 @@ def deploy_compute_node(
                                                          extensions_bucket_region=extensions_bucket_region,
                                                          resources=resources)
     kopf.adopt(statefulset)
-    configmap = compute_node_configmap(namespace)
-    kopf.adopt(configmap)
     service = compute_node_service(namespace)
     kopf.adopt(service)
 
@@ -32,7 +30,6 @@ def deploy_compute_node(
     core_client = kubernetes.client.CoreV1Api(kube_client)
     try:
         apps_client.create_namespaced_stateful_set(namespace=namespace, body=statefulset)
-        core_client.create_namespaced_config_map(namespace=namespace, body=configmap)
         core_client.create_namespaced_service(namespace=namespace, body=service)
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
@@ -48,24 +45,21 @@ def update_compute_node(
         extensions_bucket_region: str = "eu-central-1",
         resources: V1ResourceRequirements = None,
 ):
-    deployment = compute_node_deployment(namespace=namespace,
-                                         image=image,
-                                         image_pull_policy=image_pull_policy,
-                                         extensions_bucket=extensions_bucket,
-                                         # replicas=replicas,
-                                         extensions_bucket_region=extensions_bucket_region,
-                                         resources=resources)
-    kopf.adopt(deployment)
-    configmap = compute_node_configmap(namespace)
-    kopf.adopt(configmap)
+    statefulset = compute_node_deployment(namespace=namespace,
+                                          image=image,
+                                          image_pull_policy=image_pull_policy,
+                                          extensions_bucket=extensions_bucket,
+                                          # replicas=replicas,
+                                          extensions_bucket_region=extensions_bucket_region,
+                                          resources=resources)
+    kopf.adopt(statefulset)
     service = compute_node_service(namespace)
     kopf.adopt(service)
 
     apps_client = kubernetes.client.AppsV1Api(kube_client)
     core_client = kubernetes.client.CoreV1Api(kube_client)
     try:
-        apps_client.patch_namespaced_deployment(namespace=namespace, name="compute-node", body=deployment)
-        core_client.patch_namespaced_config_map(namespace=namespace, name="compute-node-config", body=configmap)
+        apps_client.patch_namespaced_stateful_set(namespace=namespace, name="compute-node", body=statefulset)
         core_client.patch_namespaced_service(namespace=namespace, name="compute-node", body=service)
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
@@ -129,14 +123,25 @@ def compute_node_deployment(
                                     name="http",
                                 ),
                             ],
-                            # TODO: migrate to use control plane service instead of hardcoding
                             command=["compute_ctl",
                                      "-D", "/var/db/postgres/compute",
                                      "-C", "postgresql://cloud_admin@0.0.0.0:5432/postgres",
                                      "-b", "/usr/local/bin/postgres",
                                      "-r",
                                      f"{{\"bucket\":\"{extensions_bucket}\",\"region\":\"{extensions_bucket_region}\"}}",
-                                     "--spec-path", "/var/compute/config/spec.json"],
+                                     "--control-plane-uri",
+                                     f"http://control-plane.{namespace}.svc.cluster.local:1234"
+                                     "--compute-id", "$(COMPUTE_ID)"],
+                            env=[
+                                # NOTE: Only works with kubernetes 1.28+
+                                kubernetes.client.V1EnvVar(
+                                    name="COMPUTE_ID",
+                                    value_from=kubernetes.client.V1EnvVarSource(
+                                        field_ref=kubernetes.client.V1ObjectFieldSelector(
+                                            field_path="metadata.labels['apps.kubernetes.io/pod-index']",
+                                        ),
+                                    ),
+                                )],
                             volume_mounts=[
                                 kubernetes.client.V1VolumeMount(
                                     name="compute-node-data-volume",
@@ -175,26 +180,6 @@ def compute_node_deployment(
     )
 
     return statefulset
-
-
-def compute_node_configmap(
-        namespace: str,
-) -> kubernetes.client.V1ConfigMap:
-    configmap = kubernetes.client.V1ConfigMap(
-        api_version="v1",
-        kind="ConfigMap",
-        metadata=kubernetes.client.V1ObjectMeta(
-            name="compute-node-config",
-            namespace=namespace,
-            labels={"app": "compute-node"},
-        ),
-        data={
-            # TODO: Add spec.json
-            "spec.json": "",
-        },
-    )
-
-    return configmap
 
 
 def compute_node_service(

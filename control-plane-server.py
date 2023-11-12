@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
@@ -178,6 +179,7 @@ def attach_hook(request: AttachHookRequest):
 
 @app.get("/compute/api/v2/computes/{compute_id}/spec")
 def get_compute_spec(compute_id: str) -> ControlPlaneSpecResponse:
+    namespace = os.getenv("NAMESPACE")
     # TODO: get the compute deployment from k8s using compute_id
     response = ControlPlaneSpecResponse(
         spec=ComputeSpec(
@@ -187,7 +189,11 @@ def get_compute_spec(compute_id: str) -> ControlPlaneSpecResponse:
                 cluster_id="",
                 name="",
                 state="",
-                roles=[],
+                roles=[
+                    Role(
+                        name="postgres"
+                    )
+                ],
                 databases=[],
                 postgresql_conf="",
                 settings=[]
@@ -196,9 +202,11 @@ def get_compute_spec(compute_id: str) -> ControlPlaneSpecResponse:
             skip_pg_catalog_updates=False,
             tenant_id="",
             timeline_id="",
-            pageserver_connstring="",
+            pageserver_connstring=f"host=pageserver.{namespace}.svc.cluster.local port=6400",
             safekeeper_connstrings=[
-                ""
+                f"safekeeper-0.safekeeper.{namespace}.svc.cluster.local:5454",
+                f"safekeeper-1.safekeeper.{namespace}.svc.cluster.local:5454",
+                f"safekeeper-2.safekeeper.{namespace}.svc.cluster.local:5454"
             ],
             mode=ComputeMode.primary,
             storage_auth_token="",
