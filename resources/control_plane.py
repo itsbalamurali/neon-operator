@@ -4,12 +4,11 @@ import kopf
 
 from kubernetes.client import V1ResourceRequirements, ApiException
 
-
 def deploy_control_plane(
         kube_client: kubernetes.client.CoreV1Api,
         namespace: str,
         replicas: int = 1,
-        image: str = "neondatabase/neon",
+        image: str = "ghcr.io/itsbalamurali/neon-operator:main",
         image_pull_policy: str = "IfNotPresent",
         resources: V1ResourceRequirements = None,
 ):
@@ -30,7 +29,7 @@ def update_control_plane(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
         replicas: int = 1,
-        image: str = "neondatabase/neon",
+        image: str = "ghcr.io/itsbalamurali/neon-operator:main",
         image_pull_policy: str = "IfNotPresent",
         resources: V1ResourceRequirements = None,
 ):
@@ -82,7 +81,7 @@ def control_plane_deployment(
                             name="http",
                         ),
                     ],
-                    command=["control_plane", "-D", "/data/.neon/"],
+                    command=["uvicorn", "control_plane_server:app", "--host", "0.0.0.0", "--port", "1234"],
                     resources=resources,
                 ),
             ],
