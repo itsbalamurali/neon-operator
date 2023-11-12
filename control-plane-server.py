@@ -62,9 +62,9 @@ class DeltaOperation(BaseModel):
 
 
 class ComputeMode(Enum):
-    primary = "Primary"
-    replica = "Replica"
-    static = "Static"
+    primary = "primary"
+    replica = "replica"
+    static = "static"
 
 
 class ComputeSpec(BaseModel):
@@ -83,8 +83,8 @@ class ComputeSpec(BaseModel):
 
 
 class ControlPlaneComputeStatus(Enum):
-    Empty = "Empty"
-    Attached = "Attached"
+    Empty = "empty"
+    Attached = "attached"
 
 
 class ControlPlaneSpecResponse(BaseModel):
