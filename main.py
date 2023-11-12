@@ -160,24 +160,29 @@ def create_deployment(spec, name, namespace,**_):
     if remote_storage_bucket_endpoint is None or remote_storage_bucket_name is None or remote_storage_bucket_region is None or remote_storage_prefix_in_bucket is None:
         raise kopf.PermanentError(f"Storage configuration is missing for NeonDeployment {namespace}/{name}")
 
-    # Deploy the storage credentials secret
-    resources.common.deploy_secret(kube_client, namespace, aws_access_key_id, aws_secret_access_key)
-    # Deploy the storage broker
-    resources.storage_broker.deploy_storage_broker(kube_client, namespace)
-    # Deploy the safekeeper
-    resources.safekeeper.deploy_safekeeper(kube_client, namespace, safekeeper_resources,
-                                            remote_storage_bucket_endpoint,
-                                            remote_storage_bucket_name,
-                                            remote_storage_bucket_region,
-                                            remote_storage_prefix_in_bucket)
-    # Deploy the control plane
-    resources.control_plane.deploy_control_plane(kube_client, namespace, control_plane_resources)
-    # Deploy the pageserver
-    resources.pageserver.deploy_pageserver(kube_client, namespace, pageserver_resources,
-                                            remote_storage_bucket_endpoint, remote_storage_bucket_name, 
-                                            remote_storage_bucket_region, remote_storage_prefix_in_bucket)
-    # Deploy the compute nodes
-    resources.compute_node.deploy_compute_node(kube_client, namespace, compute_node_resources)
+    try:
+        # Deploy the storage credentials secret
+        resources.common.deploy_secret(kube_client, namespace, aws_access_key_id, aws_secret_access_key)
+        # Deploy the storage broker
+        resources.storage_broker.deploy_storage_broker(kube_client, namespace)
+        # Deploy the safekeeper
+        resources.safekeeper.deploy_safekeeper(kube_client, namespace, safekeeper_resources,
+                                                remote_storage_bucket_endpoint,
+                                                remote_storage_bucket_name,
+                                                remote_storage_bucket_region,
+                                                remote_storage_prefix_in_bucket)
+        # Deploy the control plane
+        resources.control_plane.deploy_control_plane(kube_client, namespace, control_plane_resources)
+        # Deploy the pageserver
+        resources.pageserver.deploy_pageserver(kube_client, namespace, pageserver_resources,
+                                                remote_storage_bucket_endpoint, remote_storage_bucket_name, 
+                                                remote_storage_bucket_region, remote_storage_prefix_in_bucket)
+        # Deploy the compute nodes
+        resources.compute_node.deploy_compute_node(kube_client, namespace, compute_node_resources)
+    except Exception as e:
+        raise kopf.PermanentError(f"Failed to create NeonDeployment {namespace}/{name}: {e}")
+
+
 
 
 @kopf.on.update("neondeployments")
@@ -221,23 +226,26 @@ def update_deployment(spec, name, namespace, **_):
     if remote_storage_bucket_endpoint is None or remote_storage_bucket_name is None or remote_storage_bucket_region is None or remote_storage_prefix_in_bucket is None:
         raise kopf.PermanentError(f"Storage configuration is missing for NeonDeployment {namespace}/{name}")
     
-    # Update the storage credentials secret
-    resources.common.update_secret(kube_client, namespace, aws_access_key_id, aws_secret_access_key)
-    # Update the storage broker
-    resources.storage_broker.update_storage_broker(kube_client, namespace)
-    # Update the safekeeper
-    resources.safekeeper.update_safekeeper(kube_client, namespace, safekeeper_resources,
-                                            remote_storage_bucket_endpoint,
-                                            remote_storage_bucket_name,
-                                            remote_storage_bucket_region,
-                                            remote_storage_prefix_in_bucket
-                                            )
-    # Update the control plane
-    resources.control_plane.update_control_plane(kube_client, namespace, control_plane_resources)
-    # Update the pageserver
-    resources.pageserver.update_pageserver(kube_client, namespace, pageserver_resources)
-    # Update the compute nodes
-    resources.compute_node.update_compute_node(kube_client, namespace, compute_node_resources)
+    try:
+        # Update the storage credentials secret
+        resources.common.update_secret(kube_client, namespace, aws_access_key_id, aws_secret_access_key)
+        # Update the storage broker
+        resources.storage_broker.update_storage_broker(kube_client, namespace)
+        # Update the safekeeper
+        resources.safekeeper.update_safekeeper(kube_client, namespace, safekeeper_resources,
+                                                remote_storage_bucket_endpoint,
+                                                remote_storage_bucket_name,
+                                                remote_storage_bucket_region,
+                                                remote_storage_prefix_in_bucket
+                                                )
+        # Update the control plane
+        resources.control_plane.update_control_plane(kube_client, namespace, control_plane_resources)
+        # Update the pageserver
+        resources.pageserver.update_pageserver(kube_client, namespace, pageserver_resources)
+        # Update the compute nodes
+        resources.compute_node.update_compute_node(kube_client, namespace, compute_node_resources)
+    except Exception as e:
+        raise kopf.PermanentError(f"Failed to update NeonDeployment {namespace}/{name}: {e}")
 
 @kopf.on.delete("neondeployments")
 def delete_deployment(spec, name, namespace,**_):

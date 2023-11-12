@@ -2,6 +2,7 @@
 import kopf
 import kubernetes
 from kubernetes.client import V1ResourceRequirements, ApiException
+import yaml
 
 
 def deploy_compute_node(
@@ -129,14 +130,6 @@ def compute_node_deployment(
         ),
     )
 
-    spec = kubernetes.client.V1DeploymentSpec(
-        replicas=replicas,
-        selector=kubernetes.client.V1LabelSelector(
-            match_labels={"app": "compute-node"},
-        ),
-        template=template,
-    )
-
     deployment = kubernetes.client.V1Deployment(
         api_version="apps/v1",
         kind="Deployment",
@@ -145,9 +138,15 @@ def compute_node_deployment(
             namespace=namespace,
             labels={"app": "compute-node"},
         ),
-        spec=spec,
+        spec=kubernetes.client.V1DeploymentSpec(
+        replicas=replicas,
+        selector=kubernetes.client.V1LabelSelector(
+            match_labels={"app": "compute-node"},
+        ),
+        template=template,
+    ),
     )
-
+    print(yaml.dump(deployment))
     return deployment
 
 

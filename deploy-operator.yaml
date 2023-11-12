@@ -24,10 +24,10 @@ spec:
       - name: neon-operator
         image: ghcr.io/itsbalamurali/neon-operator:main
         imagePullPolicy: Always
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8080
+        # livenessProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: 8080
         # readinessProbe:
         #   httpGet:
         #     path: /healthz

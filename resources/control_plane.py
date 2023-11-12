@@ -3,6 +3,7 @@ import kubernetes
 import kopf
 
 from kubernetes.client import V1ResourceRequirements, ApiException
+import yaml
 
 def deploy_control_plane(
         kube_client: kubernetes.client.CoreV1Api,
@@ -65,7 +66,20 @@ def control_plane_deployment(
         image_pull_policy: str,
         resources: V1ResourceRequirements,
 ) -> kubernetes.client.V1Deployment:
-    template = kubernetes.client.V1PodTemplateSpec(
+    deployment = kubernetes.client.V1Deployment(
+        api_version="apps/v1",
+        kind="Deployment",
+        metadata=kubernetes.client.V1ObjectMeta(
+            name="control-plane",
+            namespace=namespace,
+            labels={"app": "control-plane"},
+        ),
+        spec=kubernetes.client.V1DeploymentSpec(
+        replicas=replicas,
+        selector=kubernetes.client.V1LabelSelector(
+            match_labels={"app": "control-plane"},
+        ),
+        template=kubernetes.client.V1PodTemplateSpec(
         metadata=kubernetes.client.V1ObjectMeta(
             labels={"app": "control-plane"},
         ),
@@ -86,27 +100,11 @@ def control_plane_deployment(
                 ),
             ],
         ),
+    ),
+    ),
     )
 
-    spec = kubernetes.client.V1DeploymentSpec(
-        replicas=replicas,
-        selector=kubernetes.client.V1LabelSelector(
-            match_labels={"app": "control-plane"},
-        ),
-        template=template,
-    )
-
-    deployment = kubernetes.client.V1Deployment(
-        api_version="apps/v1",
-        kind="Deployment",
-        metadata=kubernetes.client.V1ObjectMeta(
-            name="control-plane",
-            namespace=namespace,
-            labels={"app": "control-plane"},
-        ),
-        spec=spec,
-    )
-
+    print(yaml.dump(deployment))
     return deployment
 
 
