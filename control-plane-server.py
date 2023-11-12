@@ -62,9 +62,9 @@ class DeltaOperation(BaseModel):
 
 
 class ComputeMode(Enum):
-    primary = "primary"
-    replica = "replica"
-    static = "static"
+    primary = "Primary"
+    replica = "Replica"
+    static = "Static"
 
 
 class ComputeSpec(BaseModel):
