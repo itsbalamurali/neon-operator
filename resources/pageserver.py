@@ -5,15 +5,15 @@ from kubernetes.client import V1ResourceRequirements, ApiException
 
 
 def deploy_pageserver(
-                      kube_client: kubernetes.client.ApiClient,
-                      namespace: str,
-                      resources: V1ResourceRequirements,
-                      remote_storage_endpoint: str,
-                      remote_storage_bucket_name: str,
-                      remote_storage_bucket_region: str,
-                      remote_storage_prefix_in_bucket: str,
-                      image_pull_policy: str = "IfNotPresent",
-                      image: str = "neondatabase/neon"):
+        kube_client: kubernetes.client.ApiClient,
+        namespace: str,
+        resources: V1ResourceRequirements,
+        remote_storage_endpoint: str,
+        remote_storage_bucket_name: str,
+        remote_storage_bucket_region: str,
+        remote_storage_prefix_in_bucket: str,
+        image_pull_policy: str = "IfNotPresent",
+        image: str = "neondatabase/neon"):
     """
     Deploys the pageserver resources to the kubernetes cluster
     :param kube_client: kubernetes api client
@@ -27,7 +27,8 @@ def deploy_pageserver(
     kopf.adopt(deployment)
     service = pageserver_service(namespace)
     kopf.adopt(service)
-    configmap = pageserver_configmap(namespace,remote_storage_endpoint,remote_storage_bucket_name,remote_storage_bucket_region,remote_storage_prefix_in_bucket)
+    configmap = pageserver_configmap(namespace, remote_storage_endpoint, remote_storage_bucket_name,
+                                     remote_storage_bucket_region, remote_storage_prefix_in_bucket)
     kopf.adopt(configmap)
 
     apps_client = kubernetes.client.AppsV1Api(kube_client)
@@ -39,13 +40,14 @@ def deploy_pageserver(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def update_pageserver(
-                        kube_client: kubernetes.client.ApiClient,
-                        namespace: str,
-                        resources: V1ResourceRequirements,
-                        image_pull_policy: str = "IfNotPresent",
-                        image: str = "neondatabase/neon",
-                        replicas: int = 3,):
+        kube_client: kubernetes.client.ApiClient,
+        namespace: str,
+        resources: V1ResourceRequirements,
+        image_pull_policy: str = "IfNotPresent",
+        image: str = "neondatabase/neon",
+        replicas: int = 3, ):
     """
     Updates the pageserver resources in the kubernetes cluster
     :param kube_client: kubernetes api client
@@ -71,9 +73,10 @@ def update_pageserver(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def delete_pageserver(
-                        kube_client: kubernetes.client.ApiClient,
-                        namespace: str,
+        kube_client: kubernetes.client.ApiClient,
+        namespace: str,
 ):
     """
     Deletes the pageserver resources from the kubernetes cluster
@@ -89,6 +92,7 @@ def delete_pageserver(
         core_client.delete_namespaced_config_map(namespace=namespace, name="pageserver")
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def pageserver_statefulset(namespace: str,
                            resources: V1ResourceRequirements,
@@ -112,7 +116,6 @@ def pageserver_statefulset(namespace: str,
             kubernetes.client.V1ContainerPort(container_port=9898),
             kubernetes.client.V1ContainerPort(container_port=6400),
         ],
-        #TODO: inject the id of the pod into the container
         command=[
             "pageserver", "-D", "/data/.neon/", "-c", "id=$(POD_INDEX)", "-c",
             "broker_endpoint='http://storage-broker." + namespace + ".svc.cluster.local:50051'"
@@ -127,7 +130,6 @@ def pageserver_statefulset(namespace: str,
                     ),
                 ),
             ),
-            # Add BROKER_ENDPOINT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
             kubernetes.client.V1EnvVar(
                 name="BROKER_ENDPOINT",
                 value="http://storage-broker." + namespace + ".svc.cluster.local:50051",
@@ -177,44 +179,50 @@ def pageserver_statefulset(namespace: str,
                                 path="pageserver.toml",
                             )]
                     )),
+                kubernetes.client.V1Volume(
+                    name="pageserver-data-volume",
+                    persistent_volume_claim=kubernetes.client.V1PersistentVolumeClaimVolumeSource(
+                        claim_name="pageserver-data-volume",
+                    ),
+                ),
             ],
         ),
     )
 
-    spec = kubernetes.client.V1StatefulSetSpec(
-        replicas=replicas,
-        service_name="pageserver",
-        selector=kubernetes.client.V1LabelSelector(
-            match_labels={"app": "pageserver"},
-        ),
-        template=template,
-        volume_claim_templates=[
-            kubernetes.client.V1PersistentVolumeClaim(
-                metadata=kubernetes.client.V1ObjectMeta(
-                    name="pageserver-data-volume",
-                    labels={"app": "pageserver"},
-                ),
-                spec=kubernetes.client.V1PersistentVolumeClaimSpec(
-                    access_modes=["ReadWriteOnce"],
-                    resources=kubernetes.client.V1ResourceRequirements(
-                        requests={"storage": storage_capacity},
-                    ),
-                ),
-            ),
-        ],
-    )
-
-    deployment = kubernetes.client.V1StatefulSet(
+    statefulset = kubernetes.client.V1StatefulSet(
         api_version="apps/v1",
         kind="StatefulSet",
         metadata=kubernetes.client.V1ObjectMeta(
             name="pageserver",
+            namespace=namespace,
             labels={"app": "pageserver"},
         ),
-        spec=spec,
+        spec=kubernetes.client.V1StatefulSetSpec(
+            replicas=replicas,
+            service_name="pageserver",
+            selector=kubernetes.client.V1LabelSelector(
+                match_labels={"app": "pageserver"},
+            ),
+            template=template,
+            volume_claim_templates=[
+                kubernetes.client.V1PersistentVolumeClaim(
+                    metadata=kubernetes.client.V1ObjectMeta(
+                        name="pageserver-data-volume",
+                        namespace=namespace,
+                        labels={"app": "pageserver"},
+                    ),
+                    spec=kubernetes.client.V1PersistentVolumeClaimSpec(
+                        access_modes=["ReadWriteOnce"],
+                        resources=kubernetes.client.V1ResourceRequirements(
+                            requests={"storage": storage_capacity},
+                        ),
+                    ),
+                ),
+            ],
+        ),
     )
 
-    return deployment
+    return statefulset
 
 
 def pageserver_service(

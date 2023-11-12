@@ -66,6 +66,7 @@ def control_plane_deployment(
         image_pull_policy: str,
         resources: V1ResourceRequirements,
 ) -> kubernetes.client.V1Deployment:
+    
     deployment = kubernetes.client.V1Deployment(
         api_version="apps/v1",
         kind="Deployment",
@@ -75,36 +76,36 @@ def control_plane_deployment(
             labels={"app": "control-plane"},
         ),
         spec=kubernetes.client.V1DeploymentSpec(
-        replicas=replicas,
+        # replicas=replicas,
         selector=kubernetes.client.V1LabelSelector(
             match_labels={"app": "control-plane"},
         ),
         template=kubernetes.client.V1PodTemplateSpec(
-        metadata=kubernetes.client.V1ObjectMeta(
-            labels={"app": "control-plane"},
-        ),
-        spec=kubernetes.client.V1PodSpec(
-            containers=[
-                kubernetes.client.V1Container(
-                    name="control-plane",
-                    image=image,
-                    image_pull_policy=image_pull_policy,
-                    ports=[
-                        kubernetes.client.V1ContainerPort(
-                            container_port=1234,
-                            name="http",
-                        ),
-                    ],
-                    command=["uvicorn", "control_plane_server:app", "--host", "0.0.0.0", "--port", "1234"],
-                    resources=resources,
-                ),
-            ],
-        ),
+            metadata=kubernetes.client.V1ObjectMeta(
+                labels={"app": "control-plane"},
+            ),
+            spec=kubernetes.client.V1PodSpec(
+                containers=[
+                    kubernetes.client.V1Container(
+                        name="control-plane",
+                        image=image,
+                        image_pull_policy=image_pull_policy,
+                        ports=[
+                            kubernetes.client.V1ContainerPort(
+                                container_port=1234,
+                                name="http",
+                            ),
+                        ],
+                        command=["python3", "control-plane-server.py"],
+                        resources=resources,
+                    ),
+                ],
+            ),
     ),
     ),
     )
 
-    print(yaml.dump(deployment))
+
     return deployment
 
 

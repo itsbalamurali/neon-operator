@@ -3,10 +3,12 @@ from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 from enum import Enum
+import uvicorn
 
 oauth2_scheme = HTTPBearer()
 
 app = FastAPI()
+
 
 class GenericOption(BaseModel):
     name: str
@@ -179,3 +181,6 @@ def get_compute_spec(compute_id: str) -> ControlPlaneSpecResponse:
             status=ControlPlaneComputeStatus.Empty
     )
     return response
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=1234)

@@ -9,7 +9,7 @@ metadata:
   name: deployment-sample
   namespace: database
 spec:
-  enableNeonProxy: false
+  enableNeonProxy: true
   enableAutoScaling: false
   storageConfig:
     endpoint: "http://minio:9000"
