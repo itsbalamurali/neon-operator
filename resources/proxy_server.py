@@ -116,7 +116,21 @@ def proxy_server_service(
     spec = kubernetes.client.V1ServiceSpec(
         selector={"app": "proxy-server"},
         ports=[
-            kubernetes.client.V1ServicePort(port=8080, name="http", target_port=8080),
+            kubernetes.client.V1ServicePort(
+                port=4432,
+                target_port=4432,
+                name="client",
+            ),
+            kubernetes.client.V1ServicePort(
+                port=7000,
+                target_port=7000,
+                name="management",
+            ),
+            kubernetes.client.V1ServicePort(
+                port=7001,
+                target_port=7001,
+                name="metrics",
+            ),
         ],
     )
 
