@@ -105,8 +105,8 @@ def safekeeper_statefulset(
                     resources=resources,
                     command=[
                         "safekeeper",
-                        "--listen-pg='0.0.0.0:5454'",
-                        "--listen-http='0.0.0.0:7676'",
+                        "--listen-pg=0.0.0.0:5454",
+                        "--listen-http=0.0.0.0:7676",
                         "--id=$(SAFEKEEPER_ID)",
                         "--broker-endpoint=http://storage-broker." + namespace + ".svc.cluster.local:50051",
                         "-D",

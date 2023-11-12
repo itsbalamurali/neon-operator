@@ -44,7 +44,7 @@ spec:
     plural: neontimelines
     singular: neontimeline
     shortNames:
-    - nt
+    - ntl
   group: neon.tech
   versions:
   - name: v1alpha1
