@@ -70,13 +70,20 @@ def proxy_server_deployment(
                 kubernetes.client.V1Container(
                     name="proxy-server",
                     image=image,
-                    command=["proxy_server", "--listen-addr="],
+                    command=["proxy"],
                     ports=[
+                        # proxy listens on 4432 for client connections, 7000 for management connections, 7001 for metrics etc.,
                         kubernetes.client.V1ContainerPort(
-                            container_port=8080,
+                            container_port=4432,
                             name="http",
                         ),
                     ],
+                    readiness_probe=kubernetes.client.V1Probe(
+                        http_get=kubernetes.client.V1HTTPGetAction(
+                            path="/v1/status",
+                            port=7001,
+                        ),
+                    ),
                 ),
             ],
         ),

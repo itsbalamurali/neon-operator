@@ -85,8 +85,8 @@ def neon_secret(
         data={
             "AWS_ACCESS_KEY_ID": base64.b64encode(aws_access_key_id.encode("utf-8")).decode("utf-8"),
             "AWS_SECRET_ACCESS_KEY": base64.b64encode(aws_secret_access_key.encode("utf-8")).decode("utf-8"),
-            "AUTH_PRIVATE_KEY": base64.b64encode(private_key).decode("utf-8"),
-            "AUTH_PUBLIC_KEY": base64.b64encode(public_key).decode("utf-8"),
+            "AUTH_PRIVATE_KEY": base64.b64encode(private_key.encode()).decode("utf-8"),
+            "AUTH_PUBLIC_KEY": base64.b64encode(public_key.encode()).decode("utf-8"),
         },
     )
     return secret
