@@ -116,6 +116,14 @@ def safekeeper_statefulset(
                         "/data",
                         f"--remote-storage={{endpoint='{remote_storage_bucket_endpoint}',bucket_name='{remote_storage_bucket_name}',bucket_region='{remote_storage_bucket_region}',prefix_in_bucket='{remote_storage_prefix_in_bucket}'}}"
                     ],
+                    readiness_probe=kubernetes.client.V1Probe(
+                        http_get=kubernetes.client.V1HTTPGetAction(
+                            path="/v1/status",
+                            port=7676,
+                        ),
+                        initial_delay_seconds=5,
+                        period_seconds=5,
+                    ),
                     env=[
                         # NOTE: Only works with kubernetes 1.28+
                         kubernetes.client.V1EnvVar(

@@ -140,6 +140,17 @@ def pageserver_statefulset(namespace: str,
                             "pageserver", "-D", "/data/.neon/", "-c", "id=$(POD_INDEX)", "-c",
                             "broker_endpoint='http://storage-broker." + namespace + ".svc.cluster.local:50051'"
                         ],
+                        readiness_probe=kubernetes.client.V1Probe(
+                            http_get=kubernetes.client.V1HTTPGetAction(
+                                path="/v1/status",
+                                port=9898,
+                            ),
+                            initial_delay_seconds=10,
+                            timeout_seconds=5,
+                            period_seconds=5,
+                            success_threshold=1,
+                            failure_threshold=3,
+                        ),
                         env=[
                             # NOTE: Only works with kubernetes 1.28+
                             kubernetes.client.V1EnvVar(

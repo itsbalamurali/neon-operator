@@ -130,6 +130,14 @@ def compute_node_deployment(
                                      "--remote-ext-config", f"{{\"bucket\":\"{extensions_bucket}\",\"region\":\"{extensions_bucket_region}\"}}",
                                      "--control-plane-uri", f"http://control-plane.{namespace}.svc.cluster.local:1234",
                                      "--compute-id", "$(COMPUTE_ID)"],
+                            readiness_probe=kubernetes.client.V1Probe(
+                                http_get=kubernetes.client.V1HTTPGetAction(
+                                    path="/status",
+                                    port=3080,
+                                ),
+                                initial_delay_seconds=5,
+                                period_seconds=5,
+                            ),
                             env=[
                                 # NOTE: Only works with kubernetes 1.28+
                                 kubernetes.client.V1EnvVar(

@@ -80,6 +80,12 @@ def storage_broker_deployment(
                     name="storage-broker",
                     image=image,
                     command=["storage_broker", "--listen-addr=0.0.0.0:50051"],
+                    readiness_probe=kubernetes.client.V1Probe(
+                        http_get=kubernetes.client.V1HTTPGetAction(
+                            path="/status",
+                            port=50051,
+                        ),
+                    ),
                     ports=[
                         kubernetes.client.V1ContainerPort(
                             container_port=50051,
