@@ -87,7 +87,6 @@ def delete_pageserver(
         apps_client.delete_namespaced_stateful_set(namespace=namespace, name="pageserver")
         core_client.delete_namespaced_service(namespace=namespace, name="pageserver")
         core_client.delete_namespaced_config_map(namespace=namespace, name="pageserver")
-        core_client.delete_namespaced_persistent_volume_claim(namespace=namespace, name="pageserver")
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
