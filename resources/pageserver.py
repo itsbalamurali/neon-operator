@@ -108,86 +108,6 @@ def pageserver_statefulset(namespace: str,
     :param image: default pageserver container image (default: neondatabase/neon)
     :return: returns a kubernetes statefulset object
     """
-    container = kubernetes.client.V1Container(
-        name="pageserver",
-        image=image,
-        image_pull_policy=image_pull_policy,
-        ports=[
-            kubernetes.client.V1ContainerPort(container_port=9898),
-            kubernetes.client.V1ContainerPort(container_port=6400),
-        ],
-        command=[
-            "pageserver", "-D", "/data/.neon/", "-c", "id=$(POD_INDEX)", "-c",
-            "broker_endpoint='http://storage-broker." + namespace + ".svc.cluster.local:50051'"
-        ],
-        env=[
-            # NOTE: Only works with kubernetes 1.28+
-            kubernetes.client.V1EnvVar(
-                name="POD_INDEX",
-                value_from=kubernetes.client.V1EnvVarSource(
-                    field_ref=kubernetes.client.V1ObjectFieldSelector(
-                        field_path="metadata.labels['apps.kubernetes.io/pod-index']",
-                    ),
-                ),
-            ),
-            kubernetes.client.V1EnvVar(
-                name="BROKER_ENDPOINT",
-                value="http://storage-broker." + namespace + ".svc.cluster.local:50051",
-            ),
-            kubernetes.client.V1EnvVar(
-                name="AWS_ACCESS_KEY_ID",
-                value_from=kubernetes.client.V1EnvVarSource(
-                    secret_key_ref=kubernetes.client.V1SecretKeySelector(
-                        key="AWS_ACCESS_KEY_ID",
-                        name="neon-storage-credentials",
-                    ),
-                ),
-            ),
-            kubernetes.client.V1EnvVar(
-                name="AWS_SECRET_ACCESS_KEY",
-                value_from=kubernetes.client.V1EnvVarSource(
-                    secret_key_ref=kubernetes.client.V1SecretKeySelector(
-                        key="AWS_SECRET_ACCESS_KEY",
-                        name="neon-storage-credentials",
-                    ),
-                ),
-            ),
-        ],
-        volume_mounts=[
-            kubernetes.client.V1VolumeMount(
-                name="pageserver-data-volume",
-                mount_path="/data/.neon/",
-            ),
-        ],
-        resources=resources,
-    )
-
-    template = kubernetes.client.V1PodTemplateSpec(
-        metadata=kubernetes.client.V1ObjectMeta(
-            labels={"app": "pageserver"},
-        ),
-        spec=kubernetes.client.V1PodSpec(
-            containers=[container],
-            volumes=[
-                kubernetes.client.V1Volume(
-                    name="pageserver-config-volume",
-                    config_map=kubernetes.client.V1ConfigMapVolumeSource(
-                        name="pageserver-config",
-                        items=[
-                            kubernetes.client.V1KeyToPath(
-                                key="pageserver.toml",
-                                path="pageserver.toml",
-                            )]
-                    )),
-                kubernetes.client.V1Volume(
-                    name="pageserver-data-volume",
-                    persistent_volume_claim=kubernetes.client.V1PersistentVolumeClaimVolumeSource(
-                        claim_name="pageserver-data-volume",
-                    ),
-                ),
-            ],
-        ),
-    )
 
     statefulset = kubernetes.client.V1StatefulSet(
         api_version="apps/v1",
@@ -203,7 +123,84 @@ def pageserver_statefulset(namespace: str,
             selector=kubernetes.client.V1LabelSelector(
                 match_labels={"app": "pageserver"},
             ),
-            template=template,
+            template=kubernetes.client.V1PodTemplateSpec(
+                metadata=kubernetes.client.V1ObjectMeta(
+                    labels={"app": "pageserver"},
+                ),
+                spec=kubernetes.client.V1PodSpec(
+                    containers=[kubernetes.client.V1Container(
+                        name="pageserver",
+                        image=image,
+                        image_pull_policy=image_pull_policy,
+                        ports=[
+                            kubernetes.client.V1ContainerPort(container_port=9898),
+                            kubernetes.client.V1ContainerPort(container_port=6400),
+                        ],
+                        command=[
+                            "pageserver", "-D", "/data/.neon/", "-c", "id=$(POD_INDEX)", "-c",
+                            "broker_endpoint='http://storage-broker." + namespace + ".svc.cluster.local:50051'"
+                        ],
+                        env=[
+                            # NOTE: Only works with kubernetes 1.28+
+                            kubernetes.client.V1EnvVar(
+                                name="POD_INDEX",
+                                value_from=kubernetes.client.V1EnvVarSource(
+                                    field_ref=kubernetes.client.V1ObjectFieldSelector(
+                                        field_path="metadata.labels['apps.kubernetes.io/pod-index']",
+                                    ),
+                                ),
+                            ),
+                            kubernetes.client.V1EnvVar(
+                                name="BROKER_ENDPOINT",
+                                value="http://storage-broker." + namespace + ".svc.cluster.local:50051",
+                            ),
+                            kubernetes.client.V1EnvVar(
+                                name="AWS_ACCESS_KEY_ID",
+                                value_from=kubernetes.client.V1EnvVarSource(
+                                    secret_key_ref=kubernetes.client.V1SecretKeySelector(
+                                        key="AWS_ACCESS_KEY_ID",
+                                        name="neon-storage-credentials",
+                                    ),
+                                ),
+                            ),
+                            kubernetes.client.V1EnvVar(
+                                name="AWS_SECRET_ACCESS_KEY",
+                                value_from=kubernetes.client.V1EnvVarSource(
+                                    secret_key_ref=kubernetes.client.V1SecretKeySelector(
+                                        key="AWS_SECRET_ACCESS_KEY",
+                                        name="neon-storage-credentials",
+                                    ),
+                                ),
+                            ),
+                        ],
+                        volume_mounts=[
+                            kubernetes.client.V1VolumeMount(
+                                name="pageserver-data-volume",
+                                mount_path="/data/.neon/",
+                            ),
+                        ],
+                        resources=resources,
+                    )],
+                    volumes=[
+                        kubernetes.client.V1Volume(
+                            name="pageserver-config-volume",
+                            config_map=kubernetes.client.V1ConfigMapVolumeSource(
+                                name="pageserver-config",
+                                items=[
+                                    kubernetes.client.V1KeyToPath(
+                                        key="pageserver.toml",
+                                        path="pageserver.toml",
+                                    )]
+                            )),
+                        kubernetes.client.V1Volume(
+                            name="pageserver-data-volume",
+                            persistent_volume_claim=kubernetes.client.V1PersistentVolumeClaimVolumeSource(
+                                claim_name="pageserver-data-volume",
+                            ),
+                        ),
+                    ],
+                ),
+            ),
             volume_claim_templates=[
                 kubernetes.client.V1PersistentVolumeClaim(
                     metadata=kubernetes.client.V1ObjectMeta(

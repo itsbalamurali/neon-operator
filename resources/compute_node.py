@@ -10,18 +10,19 @@ def deploy_compute_node(
         namespace: str,
         # replicas: int = 3,
         image: str = "neondatabase/compute-node-v16:latest",
-        image_pull_policy: str = "Always",
+        image_pull_policy: str = "IfNotPresent",
         extensions_bucket: str = "neon-dev-extensions-eu-central-1",
         extensions_bucket_region: str = "eu-central-1",
         resources: V1ResourceRequirements = None,
 ):
-    deployment: V1StatefulSet = compute_node_deployment(namespace=namespace, image=image,
-                                                        image_pull_policy=image_pull_policy,
-                                                        extensions_bucket=extensions_bucket,
-                                                        # replicas=replicas,
-                                                        extensions_bucket_region=extensions_bucket_region,
-                                                        resources=resources)
-    kopf.adopt(deployment)
+    statefulset: V1StatefulSet = compute_node_deployment(namespace=namespace,
+                                                         image=image,
+                                                         image_pull_policy=image_pull_policy,
+                                                         extensions_bucket=extensions_bucket,
+                                                         # replicas=replicas,
+                                                         extensions_bucket_region=extensions_bucket_region,
+                                                         resources=resources)
+    kopf.adopt(statefulset)
     configmap = compute_node_configmap(namespace)
     kopf.adopt(configmap)
     service = compute_node_service(namespace)
@@ -30,7 +31,7 @@ def deploy_compute_node(
     apps_client = kubernetes.client.AppsV1Api(kube_client)
     core_client = kubernetes.client.CoreV1Api(kube_client)
     try:
-        apps_client.create_namespaced_deployment(namespace=namespace, body=deployment)
+        apps_client.create_namespaced_stateful_set(namespace=namespace, body=statefulset)
         core_client.create_namespaced_config_map(namespace=namespace, body=configmap)
         core_client.create_namespaced_service(namespace=namespace, body=service)
     except ApiException as e:
@@ -42,7 +43,7 @@ def update_compute_node(
         namespace: str,
         # replicas: int = 3,
         image: str = "neondatabase/compute-node-v16:latest",
-        image_pull_policy: str = "Always",
+        image_pull_policy: str = "IfNotPresent",
         extensions_bucket: str = "neon-dev-extensions-eu-central-1",
         extensions_bucket_region: str = "eu-central-1",
         resources: V1ResourceRequirements = None,
