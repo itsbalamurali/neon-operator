@@ -124,13 +124,11 @@ def compute_node_deployment(
                                 ),
                             ],
                             command=["compute_ctl",
-                                     "-D", "/var/db/postgres/compute",
-                                     "-C", "postgresql://cloud_admin@0.0.0.0:5432/postgres",
-                                     "-b", "/usr/local/bin/postgres",
-                                     "-r",
-                                     f"{{\"bucket\":\"{extensions_bucket}\",\"region\":\"{extensions_bucket_region}\"}}",
-                                     "--control-plane-uri",
-                                     f"http://control-plane.{namespace}.svc.cluster.local:1234"
+                                     "--pgdata", "/var/db/postgres/compute",
+                                     "--connstr", "postgresql://cloud_admin@0.0.0.0:5432/postgres",
+                                     "--pgbin", "/usr/local/bin/postgres",
+                                     "--remote-ext-config", f"{{\"bucket\":\"{extensions_bucket}\",\"region\":\"{extensions_bucket_region}\"}}",
+                                     "--control-plane-uri", f"http://control-plane.{namespace}.svc.cluster.local:1234"
                                      "--compute-id", "$(COMPUTE_ID)"],
                             env=[
                                 # NOTE: Only works with kubernetes 1.28+
