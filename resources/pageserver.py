@@ -145,11 +145,8 @@ def pageserver_statefulset(namespace: str,
                                 path="/v1/status",
                                 port=9898,
                             ),
-                            initial_delay_seconds=10,
-                            timeout_seconds=5,
+                            initial_delay_seconds=5,
                             period_seconds=5,
-                            success_threshold=1,
-                            failure_threshold=3,
                         ),
                         env=[
                             # NOTE: Only works with kubernetes 1.28+
