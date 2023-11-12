@@ -153,7 +153,7 @@ def create_deployment(spec, name, namespace,**_):
     # Storage Configuration
     remote_storage_bucket_endpoint = spec.get('storageConfig').get('endpoint')
     remote_storage_bucket_name = spec.get('storageConfig').get('bucketName')
-    remote_storage_bucket_region = spec.get('storageConfig').get('region')
+    remote_storage_bucket_region = spec.get('storageConfig').get('bucketRegion')
     remote_storage_prefix_in_bucket = spec.get('storageConfig').get('prefixInBucket')
 
     # All of the above must be present
@@ -215,7 +215,7 @@ def update_deployment(spec, name, namespace, **_):
     # Storage Configuration
     remote_storage_bucket_endpoint = spec.get('storageConfig').get('endpoint')
     remote_storage_bucket_name = spec.get('storageConfig').get('bucketName')
-    remote_storage_bucket_region = spec.get('storageConfig').get('region')
+    remote_storage_bucket_region = spec.get('storageConfig').get('bucketRegion')
     remote_storage_prefix_in_bucket = spec.get('storageConfig').get('prefixInBucket')
     # All of the above must be present
     if remote_storage_bucket_endpoint is None or remote_storage_bucket_name is None or remote_storage_bucket_region is None or remote_storage_prefix_in_bucket is None:
