@@ -271,8 +271,11 @@ def pageserver_configmap(
 listen_pg_addr = '0.0.0.0:6400'
 listen_http_addr = '0.0.0.0:9898'
 control_plane_api = 'http://control-plane.{namespace}.svc.cluster.local:1234'
+control_plane_api_token = ''
 http_auth_type = 'Trust'
 pg_auth_type = 'Trust'
+auth_validation_public_key_path = '/etc/pageserver/public_key.pem'
+metric_collection_endpoint = ''
 
 [remote_storage]
 endpoint={remote_storage_endpoint}

@@ -3,7 +3,8 @@ import base64
 import kopf
 import kubernetes
 from kubernetes.client import ApiException
-
+import nacl.signing
+import jwt
 
 def deploy_secret(
         kube_client: kubernetes.client.ApiClient,
@@ -44,6 +45,21 @@ def delete_secret(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+# Generate ed25519 keypair using pynacl
+def generate_keypair()-> (nacl.signing.SigningKey, nacl.signing.VerifyKey):
+    private_key = nacl.signing.SigningKey.generate()
+    public_key = private_key.verify_key
+    return private_key, public_key
+
+def generate_jwt(claims: dict, private_key: nacl.signing.SigningKey) -> str:
+    """
+    Generate a JWT token using the provided claims and private key
+    :param claims:
+    :param private_key:
+    :return:
+    """
+    jwt_token = jwt.encode({"some": "payload"}, "secret", algorithm="HS512")
+    return jwt_token
 
 def neon_secret(
         namespace: str,
@@ -56,6 +72,9 @@ def neon_secret(
     :param aws_secret_access_key:
     :return:
     """
+
+    (private_key, public_key) = generate_keypair()
+
     secret = kubernetes.client.V1Secret(
         api_version="v1",
         kind="Secret",
@@ -66,7 +85,8 @@ def neon_secret(
         data={
             "AWS_ACCESS_KEY_ID": base64.b64encode(aws_access_key_id.encode("utf-8")).decode("utf-8"),
             "AWS_SECRET_ACCESS_KEY": base64.b64encode(aws_secret_access_key.encode("utf-8")).decode("utf-8"),
-            # TODO: Add JWT Tokens for Control Plane and Proxy Server etc.,
+            "AUTH_PRIVATE_KEY": base64.b64encode(private_key).decode("utf-8"),
+            "AUTH_PUBLIC_KEY": base64.b64encode(public_key).decode("utf-8"),
         },
     )
     return secret
