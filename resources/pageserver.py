@@ -29,8 +29,6 @@ def deploy_pageserver(
     kopf.adopt(service)
     configmap = pageserver_configmap(namespace,remote_storage_endpoint,remote_storage_bucket_name,remote_storage_bucket_region,remote_storage_prefix_in_bucket)
     kopf.adopt(configmap)
-    pvc = pageserver_pvc(namespace)
-    kopf.adopt(pvc)
 
     apps_client = kubernetes.client.AppsV1Api(kube_client)
     core_client = kubernetes.client.CoreV1Api(kube_client)
@@ -38,7 +36,6 @@ def deploy_pageserver(
         apps_client.create_namespaced_stateful_set(namespace=namespace, body=deployment)
         core_client.create_namespaced_service(namespace=namespace, body=service)
         core_client.create_namespaced_config_map(namespace=namespace, body=configmap)
-        core_client.create_namespaced_persistent_volume_claim(namespace=namespace, body=pvc)
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
@@ -64,8 +61,6 @@ def update_pageserver(
     kopf.adopt(service)
     configmap = pageserver_configmap(namespace)
     kopf.adopt(configmap)
-    pvc = pageserver_pvc(namespace)
-    kopf.adopt(pvc)
 
     apps_client = kubernetes.client.AppsV1Api(kube_client)
     core_client = kubernetes.client.CoreV1Api(kube_client)
@@ -73,7 +68,6 @@ def update_pageserver(
         apps_client.patch_namespaced_stateful_set(namespace=namespace, name="pageserver", body=deployment)
         core_client.patch_namespaced_service(namespace=namespace, name="pageserver", body=service)
         core_client.patch_namespaced_config_map(namespace=namespace, name="pageserver", body=configmap)
-        core_client.patch_namespaced_persistent_volume_claim(namespace=namespace, name="pageserver", body=pvc)
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
@@ -101,7 +95,8 @@ def pageserver_statefulset(namespace: str,
                            resources: V1ResourceRequirements,
                            image_pull_policy: str,
                            image: str,
-                           replicas: int = 3) -> kubernetes.client.V1StatefulSet:
+                           replicas: int = 1,
+                           storage_capacity: str = "1Gi") -> kubernetes.client.V1StatefulSet:
     """
     Creates a kubernetes statefulset for the pageserver
     :param namespace: namespace to deploy to
@@ -183,13 +178,7 @@ def pageserver_statefulset(namespace: str,
                                 path="pageserver.toml",
                             )]
                     )),
-                kubernetes.client.V1Volume(
-                    name="pageserver-data-volume",
-                    persistent_volume_claim=kubernetes.client.V1PersistentVolumeClaimVolumeSource(
-                        claim_name="pageserver",
-                    ),
-                ),
-            ]
+            ],
         ),
     )
 
@@ -200,6 +189,20 @@ def pageserver_statefulset(namespace: str,
             match_labels={"app": "pageserver"},
         ),
         template=template,
+        volume_claim_templates=[
+            kubernetes.client.V1PersistentVolumeClaim(
+                metadata=kubernetes.client.V1ObjectMeta(
+                    name="pageserver-data-volume",
+                    labels={"app": "pageserver"},
+                ),
+                spec=kubernetes.client.V1PersistentVolumeClaimSpec(
+                    access_modes=["ReadWriteOnce"],
+                    resources=kubernetes.client.V1ResourceRequirements(
+                        requests={"storage": storage_capacity},
+                    ),
+                ),
+            ),
+        ],
     )
 
     deployment = kubernetes.client.V1StatefulSet(
@@ -269,30 +272,3 @@ prefix_in_bucket={remote_storage_prefix_in_bucket}
     )
 
     return configmap
-
-
-def pageserver_pvc(
-        namespace: str,
-        access_modes=None,
-        storage_capacity: str = "1Gi") -> kubernetes.client.V1PersistentVolumeClaim:
-    if access_modes is None:
-        access_modes = ["ReadWriteOnce"]
-    spec = kubernetes.client.V1PersistentVolumeClaimSpec(
-        access_modes=access_modes,
-        resources=kubernetes.client.V1ResourceRequirements(
-            requests={"storage": storage_capacity},
-        ),
-    )
-
-    pvc = kubernetes.client.V1PersistentVolumeClaim(
-        api_version="v1",
-        kind="PersistentVolumeClaim",
-        metadata=kubernetes.client.V1ObjectMeta(
-            name="pageserver",
-            namespace=namespace,
-            labels={"app": "pageserver"},
-        ),
-        spec=spec,
-    )
-
-    return pvc
