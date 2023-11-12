@@ -148,6 +148,12 @@ def compute_node_deployment(
                                         ),
                                     ),
                                 ),
+                                # NOTE: we disable it for now. By default, the pod tries to send the metrics to
+                                # hardcoded otel endpoint.
+                                kubernetes.client.V1EnvVar(
+                                    name="OTEL_SDK_DISABLED",
+                                    value="true"
+                                ),
                                 # kubernetes.client.V1EnvVar(
                                 #     name="NEON_CONTROL_PLANE_TOKEN",
                                 #     value=""
