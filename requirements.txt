@@ -2,3 +2,4 @@ kopf
 pykube-ng
 kubernetes
 fastapi[all]
+requests

@@ -1,7 +1,7 @@
 import kopf
 import logging
 import kubernetes
-
+import requests
 import resources.common
 import resources.compute_node
 import resources.control_plane
@@ -25,7 +25,7 @@ def configure(settings: kopf.OperatorSettings, **_):
 
 
 @kopf.on.startup()
-async def startup_fn(logger, **kwargs):
+async def startup(logger, **kwargs):
     logger.info("Startup completed.")
 
 
@@ -40,12 +40,26 @@ def default_resource_limits():
             "memory": "200Mi",
         },
     )
-#TODO: add check that deployment exists and pageserver service is available to call the api.
+
 @kopf.on.create("neontenants")
 def create_tenant(spec, name, namespace,**_):
     kopf.info(spec,reason='CreatingTenant',message=f'Creating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
+    check_for_pageserver(kube_client, namespace, name)
+    pageserver_url = f"http://pageserver.{namespace}.svc.cluster.local:6400"
+    # Call the api to create the tenant using requests post method to pageserver_url/v1/tenant
+    # If the response is not 200, raise kopf.PermanentError(f"Failed to create tenant {namespace}/{name}")
+    # If the response is 200, kopf.adopt the tenant
+    request = {}
+    response = requests.post(f"{pageserver_url}/v1/tenant", json=request)
+    if response.status_code != 200:
+        raise kopf.PermanentError(f"Failed to create tenant {namespace}/{name}")
+    else:
+        tenant_id = response.text
+    kopf.info(spec,reason='CreatingTenant',message=f'Created {namespace}/{name}/{tenant_id}.')
+    kopf.adopt(spec)
+
 
 
 @kopf.on.update("neontenants")
@@ -53,12 +67,20 @@ def update_tenant(spec, name, namespace, **_):
     kopf.info(spec,reason='UpdatingTenant',message=f'Updating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
+    check_for_pageserver(kube_client, namespace, name)
+    pageserver_url = f"http://pageserver.{namespace}.svc.cluster.local:6400"
+    # Call the api to update the tenant
+    request = {}
+    response = requests.put(f"{pageserver_url}/v1/tenant/config", json=request)
+
 
 @kopf.on.delete("neontenants")
 def delete_tenant(spec, name, namespace,**_):
     kopf.info(spec,reason='DeletingTenant',message=f'Deleting {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
+    check_for_pageserver(kube_client, namespace, name)
+    pageserver_url = f"http://pageserver.{namespace}.svc.cluster.local:6400"
 
 
 @kopf.on.create("neontimelines")
@@ -66,12 +88,29 @@ def create_timeline(spec, name, namespace,**_):
     kopf.info(spec,reason='CreatingTimeline',message=f'Creating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
+    check_for_pageserver(kube_client, namespace, name)
+    pageserver_url = f"http://pageserver.{namespace}.svc.cluster.local:6400"
+    # Call the api to create the timeline
+    request = {}
+    response = requests.post(f"{pageserver_url}/v1/timeline", json=request)
+    if response.status_code != 200:
+        raise kopf.PermanentError(f"Failed to create timeline {namespace}/{name}")
+    else:
+        timeline_id = response.text
+    kopf.info(spec,reason='CreatingTimeline',message=f'Created {namespace}/{name}/{timeline_id}.')
+    kopf.adopt(spec)
 
 @kopf.on.update("neontimelines")
 def update_timeline(spec, name, namespace, **_):
     kopf.info(spec,reason='UpdatingTimeline',message=f'Updating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
+    check_for_pageserver(kube_client, namespace, name)
+    pageserver_url = f"http://pageserver.{namespace}.svc.cluster.local:6400"
+    # Call the api to update the timeline
+    request = {}
+    response = requests.put(f"{pageserver_url}/v1/timeline", json=request)
+
 
 @kopf.on.delete("neontimelines")
 def delete_timeline(spec, name, namespace,**_):
@@ -221,7 +260,7 @@ def delete_deployment(spec, name, namespace,**_):
 
 
 @kopf.on.login()
-def login_fn(**kwargs):
+def login(**kwargs):
     return kopf.login_with_service_account(**kwargs) or kopf.login_with_kubeconfig(**kwargs)
 
 
@@ -229,3 +268,13 @@ def login_fn(**kwargs):
 async def cleanup_fn(logger, **kwargs):
     logger.info("Cleanup completed.")
     pass
+
+def check_for_pageserver(kube_client, namespace, name):
+    pageserver_statefulset = kubernetes.client.AppsV1Api(kube_client).read_namespaced_stateful_set(name="pageserver", namespace=namespace)
+    if pageserver_statefulset is None:
+        raise kopf.PermanentError(f"Pageserver statefulset is missing for NeonTimeline {namespace}/{name}")
+    if pageserver_statefulset['status']['ready_replicas'] is None:
+        raise kopf.PermanentError(f"Pageserver statefulset is not ready for NeonTimeline {namespace}/{name}")
+    pageserver_svc = kubernetes.client.CoreV1Api(kube_client).read_namespaced_service(name="pageserver", namespace=namespace)
+    if pageserver_svc is None:
+        raise kopf.PermanentError(f"Pageserver service is missing for NeonTimeline {namespace}/{name}")
