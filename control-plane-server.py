@@ -72,7 +72,7 @@ class ComputeSpec(BaseModel):
     operation_uuid: Optional[str]
     cluster: Cluster
     delta_operations: Optional[List[DeltaOperation]]
-    skip_pg_catalog_updates: bool | False
+    skip_pg_catalog_updates: bool = True
     tenant_id: str
     timeline_id: str
     pageserver_connstring: str
