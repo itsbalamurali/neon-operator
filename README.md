@@ -1,11 +1,17 @@
 # Neon Serverless Postgres K8S Operator
 
 ## License
-[MIT License](./LICENSE), 
-[Neon is under Apache License 2.0](https://github.com/neondatabase/neon/blob/main/LICENSE).
+[MIT License](./LICENSE)
+
+[Neon is licensed under Apache License 2.0](https://github.com/neondatabase/neon/blob/main/LICENSE).
 
 Only use this code if you know what you are doing legally in agreement with NEON's license.
 
 ## TODO:
-- [ ] Metrics (PodMonitor).
-- [ ] Create a control-plane operator to be able to control tenants and their timelines using k8s crds and store the state to etcd.
+- [ ] Launch ComputeNodes based on the Tenants / Cordination with PageServer.
+- [ ] HealthChecks.
+- [ ] JWT Auth Between the components
+- [ ] Control Plane API Implementation
+- [ ] Tenants & Timelines management via CRD (Partial Implementation Done)
+- [ ] Autoscaler Agent Support
+- [ ] Proxy Server Support (Not really useful unless you are on constrained env like WASM!!!)

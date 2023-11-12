@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, List, Dict
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
@@ -18,15 +18,15 @@ class GenericOption(BaseModel):
 
 
 class ExtensionData(BaseModel):
-    control_data: dict[str, str]
+    control_data: Dict[str, str]
     archive_path: str
 
 
 class RemoteExtensionSpec(BaseModel):
-    public_extensions: Optional[list[str]]
-    custom_extensions: Optional[list[str]]
-    library_index: dict[str, str]
-    extension_data: dict[str, ExtensionData]
+    public_extensions: Optional[List[str]]
+    custom_extensions: Optional[List[str]]
+    library_index: Dict[str, str]
+    extension_data: Dict[str, ExtensionData]
 
 
 class Role(BaseModel):
@@ -34,25 +34,25 @@ class Role(BaseModel):
     encrypted_password: Optional[str]
     replication: Optional[bool]
     bypassrls: Optional[bool]
-    options: list[GenericOption]
+    options: Optional[List[GenericOption]]
 
 
 class Database(BaseModel):
     name: str
     owner: str
-    options: list[GenericOption]
-    restrict_conn: bool
-    invalid: bool
+    options: Optional[List[GenericOption]]
+    restrict_conn: bool = False
+    invalid: bool = False
 
 
 class Cluster(BaseModel):
     cluster_id: Optional[str]
     name: Optional[str]
     state: Optional[str]
-    roles: list[Role]
-    databases: list[Database]
+    roles: List[Role]
+    databases: List[Database]
     postgresql_conf: Optional[str]
-    settings: list[GenericOption]
+    settings: List[GenericOption]
 
 
 class DeltaOperation(BaseModel):
@@ -69,17 +69,17 @@ class ComputeMode(Enum):
 
 class ComputeSpec(BaseModel):
     format_version: float
-    operation_uuid: str
+    operation_uuid: Optional[str]
     cluster: Cluster
-    delta_operations: list[DeltaOperation]
-    skip_pg_catalog_updates: bool
+    delta_operations: Optional[List[DeltaOperation]]
+    skip_pg_catalog_updates: bool | False
     tenant_id: str
     timeline_id: str
     pageserver_connstring: str
-    safekeeper_connstrings: list[str]
-    mode: ComputeMode
-    storage_auth_token: str
-    remote_extensions: list[RemoteExtensionSpec]
+    safekeeper_connstrings: List[str]
+    mode: Optional[ComputeMode]
+    storage_auth_token: Optional[str]
+    remote_extensions: Optional[List[RemoteExtensionSpec]]
 
 
 class ControlPlaneComputeStatus(Enum):
@@ -102,7 +102,7 @@ class ReAttachResponseTenant(BaseModel):
 
 
 class ReAttachResponse(BaseModel):
-    tenants: list[ReAttachResponseTenant]
+    tenants: List[ReAttachResponseTenant]
 
 
 class ValidateRequestTenant(BaseModel):
@@ -111,7 +111,7 @@ class ValidateRequestTenant(BaseModel):
 
 
 class ValidateRequest(BaseModel):
-    tenants: list[ValidateRequestTenant]
+    tenants: List[ValidateRequestTenant]
 
 
 class ValidateResponseTenant(BaseModel):
@@ -120,7 +120,7 @@ class ValidateResponseTenant(BaseModel):
 
 
 class ValidateResponse(BaseModel):
-    tenants: list[ValidateResponseTenant]
+    tenants: List[ValidateResponseTenant]
 
 
 class AttachHookRequest(BaseModel):
@@ -181,27 +181,118 @@ def attach_hook(request: AttachHookRequest):
 def get_compute_spec(compute_id: str) -> ControlPlaneSpecResponse:
     namespace = os.getenv("NAMESPACE")
     # TODO: get the compute deployment from k8s using compute_id
+    # Dummy values to get the compute-node pods running
     response = ControlPlaneSpecResponse(
         spec=ComputeSpec(
             format_version=1.0,
-            operation_uuid="",
+            tenant_id="9ef87a5bf0d92544f6fafeeb3239695c",
+            timeline_id="de200bd42b49cc1814412c7e592dd6e9",
             cluster=Cluster(
-                cluster_id="",
-                name="",
-                state="",
                 roles=[
                     Role(
                         name="postgres"
                     )
                 ],
-                databases=[],
-                postgresql_conf="",
-                settings=[]
+                databases=[
+                    Database(
+                        name="testdatabase",
+                        owner="postgres"
+                    )
+                ],
+                settings=[
+                    GenericOption(
+                        name="fsync",
+                        value="off",
+                        vartype="bool"
+                    ),
+                    GenericOption(
+                        name="wal_level",
+                        value="logical",
+                        vartype="enum"
+                    ),
+                    GenericOption(
+                        name="wal_log_hints",
+                        value="on",
+                        vartype="bool"
+                    ),
+                    GenericOption(
+                        name="log_connections",
+                        value="on",
+                        vartype="bool"
+                    ),
+                    GenericOption(
+                        name="port",
+                        value="55433",
+                        vartype="integer"
+                    ),
+                    GenericOption(
+                        name="shared_buffers",
+                        value="1MB",
+                        vartype="string"
+                    ),
+                    GenericOption(
+                        name="max_connections",
+                        value="100",
+                        vartype="integer"
+                    ),
+                    GenericOption(
+                        name="listen_addresses",
+                        value="0.0.0.0",
+                        vartype="string"
+                    ),
+                    GenericOption(
+                        name="max_wal_senders",
+                        value="10",
+                        vartype="integer"
+                    ),
+                    GenericOption(
+                        name="max_replication_slots",
+                        value="10",
+                        vartype="integer"
+                    ),
+                    GenericOption(
+                        name="wal_sender_timeout",
+                        value="5s",
+                        vartype="string"
+                    ),
+                    GenericOption(
+                        name="wal_keep_size",
+                        value="0",
+                        vartype="integer"
+                    ),
+                    GenericOption(
+                        name="password_encryption",
+                        value="md5",
+                        vartype="enum"
+                    ),
+                    GenericOption(
+                        name="restart_after_crash",
+                        value="off",
+                        vartype="bool"
+                    ),
+                    GenericOption(
+                        name="synchronous_standby_names",
+                        value="walproposer",
+                        vartype="string"
+                    ),
+                    GenericOption(
+                        name="shared_preload_libraries",
+                        value="neon",
+                        vartype="string"
+                    ),
+                    GenericOption(
+                        name="max_replication_write_lag",
+                        value="500MB",
+                        vartype="string"
+                    ),
+                    GenericOption(
+                        name="max_replication_flush_lag",
+                        value="10GB",
+                        vartype="string"
+                    ),
+                ]
             ),
-            delta_operations=[],
             skip_pg_catalog_updates=False,
-            tenant_id="",
-            timeline_id="",
             pageserver_connstring=f"host=pageserver.{namespace}.svc.cluster.local port=6400",
             safekeeper_connstrings=[
                 f"safekeeper-0.safekeeper.{namespace}.svc.cluster.local:5454",
@@ -209,8 +300,6 @@ def get_compute_spec(compute_id: str) -> ControlPlaneSpecResponse:
                 f"safekeeper-2.safekeeper.{namespace}.svc.cluster.local:5454"
             ],
             mode=ComputeMode.primary,
-            storage_auth_token="",
-            remote_extensions=[]
         ),
         status=ControlPlaneComputeStatus.Empty
     )
