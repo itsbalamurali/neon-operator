@@ -15,3 +15,4 @@ Only use this code if you know what you are doing legally in agreement with NEON
 - [ ] Tenants & Timelines management via CRD (Partial Implementation Done)
 - [ ] Autoscaler Agent Support
 - [ ] Proxy Server Support (Not really useful unless you are on constrained env like WASM!!!)
+- [ ] Add NEON_CONTROL_PLANE_TOKEN env on compute-node.

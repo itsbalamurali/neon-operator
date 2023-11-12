@@ -37,30 +37,5 @@ jobs:
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
 
-            - name: Install Helm
-              uses: azure/setup-helm@v3
-
-            - name: Validate Helm Chart
-              working-directory: charts/neon
-              run: helm lint .
-
             - name: Create Kind Cluster
               uses: helm/kind-action@v1.8.0
-
-        # - name: Apply Helm Chart
-        #   working-directory: charts/neon
-        #   run: helm install neon .
-
-        # - name: Configure Git
-        #   run: |
-        #     git config --global user.name "${{ github.actor }}"
-        #     git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-
-        # - name: Package Helm Chart
-        #   working-directory: charts/neon
-        #   run: helm package .
-
-        # - name: Publish Helm Chart
-        #   uses: helm/chart-releaser-action@v1.6.0
-        #   env:
-        #     CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

@@ -3,3 +3,4 @@ pykube-ng
 kubernetes
 fastapi[all]
 requests
+pynacl

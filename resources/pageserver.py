@@ -150,6 +150,10 @@ def pageserver_statefulset(namespace: str,
                                     ),
                                 ),
                             ),
+                            # kubernetes.client.V1EnvVar(
+                            #     name="NEON_AUTH_TOKEN",
+                            #     value=""
+                            # ),
                             kubernetes.client.V1EnvVar(
                                 name="BROKER_ENDPOINT",
                                 value="http://storage-broker." + namespace + ".svc.cluster.local:50051",
@@ -266,6 +270,9 @@ def pageserver_configmap(
         data={"pageserver.toml": f"""
 listen_pg_addr = '0.0.0.0:6400'
 listen_http_addr = '0.0.0.0:9898'
+control_plane_api = 'http://control-plane.{namespace}.svc.cluster.local:1234'
+http_auth_type = 'Trust'
+pg_auth_type = 'Trust'
 
 [remote_storage]
 endpoint={remote_storage_endpoint}

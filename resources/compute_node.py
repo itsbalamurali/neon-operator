@@ -139,7 +139,12 @@ def compute_node_deployment(
                                             field_path="metadata.labels['apps.kubernetes.io/pod-index']",
                                         ),
                                     ),
-                                )],
+                                ),
+                                # kubernetes.client.V1EnvVar(
+                                #     name="NEON_CONTROL_PLANE_TOKEN",
+                                #     value=""
+                                # )
+                            ],
                             volume_mounts=[
                                 kubernetes.client.V1VolumeMount(
                                     name="compute-node-data-volume",
