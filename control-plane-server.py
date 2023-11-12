@@ -13,7 +13,7 @@ app = FastAPI()
 
 class GenericOption(BaseModel):
     name: str
-    value: Optional[str]
+    value: Optional[str] = None
     vartype: str
 
 
@@ -23,42 +23,42 @@ class ExtensionData(BaseModel):
 
 
 class RemoteExtensionSpec(BaseModel):
-    public_extensions: Optional[List[str]]
-    custom_extensions: Optional[List[str]]
+    public_extensions: Optional[List[str]] = None
+    custom_extensions: Optional[List[str]] = None
     library_index: Dict[str, str]
     extension_data: Dict[str, ExtensionData]
 
 
 class Role(BaseModel):
     name: str
-    encrypted_password: Optional[str]
-    replication: Optional[bool]
-    bypassrls: Optional[bool]
-    options: Optional[List[GenericOption]]
+    encrypted_password: Optional[str] = None
+    replication: Optional[bool] = None
+    bypassrls: Optional[bool] = None
+    options: Optional[List[GenericOption]] = None
 
 
 class Database(BaseModel):
     name: str
     owner: str
-    options: Optional[List[GenericOption]]
+    options: Optional[List[GenericOption]] = None
     restrict_conn: bool = False
     invalid: bool = False
 
 
 class Cluster(BaseModel):
-    cluster_id: Optional[str]
-    name: Optional[str]
-    state: Optional[str]
+    cluster_id: Optional[str] = None
+    name: Optional[str] = None
+    state: Optional[str] = None
     roles: List[Role]
     databases: List[Database]
-    postgresql_conf: Optional[str]
+    postgresql_conf: Optional[str] = None
     settings: List[GenericOption]
 
 
 class DeltaOperation(BaseModel):
     action: str
     name: str
-    new_name: Optional[str]
+    new_name: Optional[str] = None
 
 
 class ComputeMode(Enum):
@@ -69,17 +69,17 @@ class ComputeMode(Enum):
 
 class ComputeSpec(BaseModel):
     format_version: float
-    operation_uuid: Optional[str]
+    operation_uuid: Optional[str] = None
     cluster: Cluster
-    delta_operations: Optional[List[DeltaOperation]]
+    delta_operations: Optional[List[DeltaOperation]] = None
     skip_pg_catalog_updates: bool = True
     tenant_id: str
     timeline_id: str
     pageserver_connstring: str
     safekeeper_connstrings: List[str]
-    mode: Optional[ComputeMode]
-    storage_auth_token: Optional[str]
-    remote_extensions: Optional[List[RemoteExtensionSpec]]
+    mode: Optional[ComputeMode] = None
+    storage_auth_token: Optional[str] = None
+    remote_extensions: Optional[List[RemoteExtensionSpec]] = None
 
 
 class ControlPlaneComputeStatus(Enum):
