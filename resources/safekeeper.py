@@ -18,11 +18,11 @@ def deploy_safekeeper(
         image: str = "neondatabase/neon",
         replicas: int = 3,
 ):
-    deployment = safekeeper_statefulset(namespace=namespace, resources=resources, 
+    deployment = safekeeper_statefulset(namespace=namespace, resources=resources,
                                         remote_storage_bucket_endpoint=remote_storage_bucket_endpoint,
                                         remote_storage_bucket_name=remote_storage_bucket_name,
-                                        remote_storage_bucket_region= remote_storage_bucket_region,
-                                        remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket, 
+                                        remote_storage_bucket_region=remote_storage_bucket_region,
+                                        remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket,
                                         image_pull_policy=image_pull_policy, image=image, replicas=replicas)
     kopf.adopt(deployment)
     service = safekeeper_service(namespace)
@@ -38,6 +38,7 @@ def deploy_safekeeper(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def update_safekeeper(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
@@ -50,11 +51,12 @@ def update_safekeeper(
         image: str = "neondatabase/neon",
         replicas: int = 3,
 ):
-    deployment = safekeeper_statefulset(namespace=namespace, resources=resources, 
+    deployment = safekeeper_statefulset(namespace=namespace, resources=resources,
                                         remote_storage_bucket_endpoint=remote_storage_bucket_endpoint,
                                         remote_storage_bucket_name=remote_storage_bucket_name,
-                                        remote_storage_bucket_region= remote_storage_bucket_region,
-                                        remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket, image_pull_policy=image_pull_policy, image=image, replicas=replicas)
+                                        remote_storage_bucket_region=remote_storage_bucket_region,
+                                        remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket,
+                                        image_pull_policy=image_pull_policy, image=image, replicas=replicas)
     kopf.adopt(deployment)
     service = safekeeper_service(namespace)
     kopf.adopt(service)
@@ -65,9 +67,9 @@ def update_safekeeper(
     try:
         apps_client.patch_namespaced_stateful_set(namespace=namespace, name="safekeeper", body=deployment)
         core_client.patch_namespaced_service(namespace=namespace, name="safekeeper", body=service)
-        # core_client.patch_namespaced_persistent_volume_claim(namespace=namespace, name="safekeeper-data-volume", body=pvc)
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def delete_safekeeper(
         kube_client: kubernetes.client.ApiClient,
@@ -81,6 +83,7 @@ def delete_safekeeper(
         # core_client.delete_namespaced_persistent_volume_claim(namespace=namespace, name="safekeeper")
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def safekeeper_statefulset(
         namespace: str,
@@ -173,14 +176,14 @@ def safekeeper_statefulset(
             namespace=namespace,
             labels={"app": "safekeeper"},
         ),
-        spec= kubernetes.client.V1StatefulSetSpec(
-        replicas=replicas,
-        service_name="safekeeper",
-        selector=kubernetes.client.V1LabelSelector(
-            match_labels={"app": "safekeeper"},
-        ),
-        template=template,
-    )
+        spec=kubernetes.client.V1StatefulSetSpec(
+            replicas=replicas,
+            service_name="safekeeper",
+            selector=kubernetes.client.V1LabelSelector(
+                match_labels={"app": "safekeeper"},
+            ),
+            template=template,
+        )
     )
 
     return deployment

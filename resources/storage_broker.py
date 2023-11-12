@@ -1,6 +1,6 @@
 import kopf
 import kubernetes
-from kubernetes.client import ApiException
+from kubernetes.client import ApiException, V1ResourceRequirements
 
 
 def deploy_storage_broker(
@@ -8,8 +8,12 @@ def deploy_storage_broker(
         namespace: str,
         image: str = "neondatabase/neon:latest",
         replicas: int = 1,
+        resources: V1ResourceRequirements = None,
 ):
-    deployment = storage_broker_deployment(namespace, image, replicas)
+    deployment = storage_broker_deployment(namespace=namespace,
+                                           image=image,
+                                           replicas=replicas,
+                                           resources=resources)
     service = storage_broker_service(namespace)
     kopf.adopt(deployment)
     kopf.adopt(service)
@@ -22,13 +26,18 @@ def deploy_storage_broker(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def update_storage_broker(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
         image: str = "neondatabase/neon:latest",
         replicas: int = 1,
+        resources: V1ResourceRequirements = None,
 ):
-    deployment = storage_broker_deployment(namespace, image, replicas)
+    deployment = storage_broker_deployment(namespace=namespace,
+                                           image=image,
+                                           replicas=replicas,
+                                           resources=resources)
     service = storage_broker_service(namespace)
     kopf.adopt(deployment)
     kopf.adopt(service)
@@ -40,6 +49,7 @@ def update_storage_broker(
         core_client.patch_namespaced_service(namespace=namespace, name="storage-broker", body=service)
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def delete_storage_broker(
         kube_client: kubernetes.client.ApiClient,
@@ -53,10 +63,12 @@ def delete_storage_broker(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def storage_broker_deployment(
         namespace: str,
         image: str,
         replicas: int,
+        resources: V1ResourceRequirements = None,
 ) -> kubernetes.client.V1Deployment:
     template = kubernetes.client.V1PodTemplateSpec(
         metadata=kubernetes.client.V1ObjectMeta(
@@ -74,6 +86,7 @@ def storage_broker_deployment(
                             name="grpc",
                         ),
                     ],
+                    resources=resources
                 ),
             ],
         ),

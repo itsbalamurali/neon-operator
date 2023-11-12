@@ -2,6 +2,7 @@ import kopf
 import kubernetes
 from kubernetes.client import ApiException
 
+
 def deploy_autoscaler_agent(
         kube_client: kubernetes.client.CoreV1Api,
         namespace: str,
@@ -16,6 +17,7 @@ def deploy_autoscaler_agent(
         apps_client.create_namespaced_deployment(namespace=namespace, body=deployment)
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def update_autoscaler_agent(
         kube_client: kubernetes.client.CoreV1Api,
@@ -32,7 +34,8 @@ def update_autoscaler_agent(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
-def delete_autoscaler_agent( 
+
+def delete_autoscaler_agent(
         kube_client: kubernetes.client.CoreV1Api,
         namespace: str,
 ):
@@ -41,6 +44,7 @@ def delete_autoscaler_agent(
         apps_client.delete_namespaced_deployment(namespace=namespace, name="autoscaler-agent")
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def autoscaler_agent_deployment(
         replicas: int,

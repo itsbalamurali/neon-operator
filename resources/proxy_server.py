@@ -22,6 +22,7 @@ def deploy_proxy_server(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def update_proxy_server(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
@@ -41,6 +42,7 @@ def update_proxy_server(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def delete_proxy_server(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
@@ -52,6 +54,7 @@ def delete_proxy_server(
         core_client.delete_namespaced_service(namespace=namespace, name="proxy-server")
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def proxy_server_deployment(
         namespace: str,

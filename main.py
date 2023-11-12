@@ -41,9 +41,10 @@ def default_resource_limits():
         },
     )
 
+
 @kopf.on.create("neontenants")
-def create_tenant(spec, name, namespace,**_):
-    kopf.info(spec,reason='CreatingTenant',message=f'Creating {namespace}/{name}.')
+def create_tenant(spec, name, namespace, **_):
+    kopf.info(spec, reason='CreatingTenant', message=f'Creating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     check_for_pageserver(kube_client, namespace, name)
@@ -57,14 +58,13 @@ def create_tenant(spec, name, namespace,**_):
         raise kopf.PermanentError(f"Failed to create tenant {namespace}/{name}")
     else:
         tenant_id = response.text
-    kopf.info(spec,reason='CreatingTenant',message=f'Created {namespace}/{name}/{tenant_id}.')
+    kopf.info(spec, reason='CreatingTenant', message=f'Created {namespace}/{name}/{tenant_id}.')
     kopf.adopt(spec)
-
 
 
 @kopf.on.update("neontenants")
 def update_tenant(spec, name, namespace, **_):
-    kopf.info(spec,reason='UpdatingTenant',message=f'Updating {namespace}/{name}.')
+    kopf.info(spec, reason='UpdatingTenant', message=f'Updating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     check_for_pageserver(kube_client, namespace, name)
@@ -75,8 +75,8 @@ def update_tenant(spec, name, namespace, **_):
 
 
 @kopf.on.delete("neontenants")
-def delete_tenant(spec, name, namespace,**_):
-    kopf.info(spec,reason='DeletingTenant',message=f'Deleting {namespace}/{name}.')
+def delete_tenant(spec, name, namespace, **_):
+    kopf.info(spec, reason='DeletingTenant', message=f'Deleting {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     check_for_pageserver(kube_client, namespace, name)
@@ -84,8 +84,8 @@ def delete_tenant(spec, name, namespace,**_):
 
 
 @kopf.on.create("neontimelines")
-def create_timeline(spec, name, namespace,**_):
-    kopf.info(spec,reason='CreatingTimeline',message=f'Creating {namespace}/{name}.')
+def create_timeline(spec, name, namespace, **_):
+    kopf.info(spec, reason='CreatingTimeline', message=f'Creating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     check_for_pageserver(kube_client, namespace, name)
@@ -97,12 +97,13 @@ def create_timeline(spec, name, namespace,**_):
         raise kopf.PermanentError(f"Failed to create timeline {namespace}/{name}")
     else:
         timeline_id = response.text
-    kopf.info(spec,reason='CreatingTimeline',message=f'Created {namespace}/{name}/{timeline_id}.')
+    kopf.info(spec, reason='CreatingTimeline', message=f'Created {namespace}/{name}/{timeline_id}.')
     kopf.adopt(spec)
+
 
 @kopf.on.update("neontimelines")
 def update_timeline(spec, name, namespace, **_):
-    kopf.info(spec,reason='UpdatingTimeline',message=f'Updating {namespace}/{name}.')
+    kopf.info(spec, reason='UpdatingTimeline', message=f'Updating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     check_for_pageserver(kube_client, namespace, name)
@@ -113,14 +114,15 @@ def update_timeline(spec, name, namespace, **_):
 
 
 @kopf.on.delete("neontimelines")
-def delete_timeline(spec, name, namespace,**_):
-    kopf.info(spec,reason='DeletingTimeline',message=f'Deleting {namespace}/{name}.')
+def delete_timeline(spec, name, namespace, **_):
+    kopf.info(spec, reason='DeletingTimeline', message=f'Deleting {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
 
+
 @kopf.on.create("neondeployments")
-def create_deployment(spec, name, namespace,**_):
-    kopf.info(spec,reason='CreatingDeployment',message=f'Creating {namespace}/{name}.')
+def create_deployment(spec, name, namespace, **_):
+    kopf.info(spec, reason='CreatingDeployment', message=f'Creating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     aws_access_key_id = spec.get('storageConfig').get('credentials').get('awsAccessKeyID')
@@ -129,15 +131,15 @@ def create_deployment(spec, name, namespace,**_):
     if aws_access_key_id is None or aws_secret_access_key is None:
         raise kopf.PermanentError(f"Storage credentials are missing for NeonDeployment {namespace}/{name}")
 
-    # Preassign resource requests and limits
+    # Assign resource requests and limits
     compute_node_resources = spec.get('computeNode').get('resources')
     if compute_node_resources is None:
         compute_node_resources = default_resource_limits()
-    
+
     storage_broker_resources = spec.get('storageBroker').get('resources')
     if storage_broker_resources is None:
         storage_broker_resources = default_resource_limits()
-    
+
     control_plane_resources = spec.get('controlPlane').get('resources')
     if control_plane_resources is None:
         control_plane_resources = default_resource_limits()
@@ -166,28 +168,36 @@ def create_deployment(spec, name, namespace,**_):
         # Deploy the storage broker
         resources.storage_broker.deploy_storage_broker(kube_client, namespace)
         # Deploy the safekeeper
-        resources.safekeeper.deploy_safekeeper(kube_client, namespace, safekeeper_resources,
-                                                remote_storage_bucket_endpoint,
-                                                remote_storage_bucket_name,
-                                                remote_storage_bucket_region,
-                                                remote_storage_prefix_in_bucket)
+        resources.safekeeper.deploy_safekeeper(kube_client=kube_client,
+                                               namespace=namespace,
+                                               resources=safekeeper_resources,
+                                               remote_storage_bucket_endpoint=remote_storage_bucket_endpoint,
+                                               remote_storage_bucket_name=remote_storage_bucket_name,
+                                               remote_storage_bucket_region=remote_storage_bucket_region,
+                                               remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket)
         # Deploy the control plane
-        resources.control_plane.deploy_control_plane(kube_client, namespace, control_plane_resources)
+        resources.control_plane.deploy_control_plane(kube_client=kube_client,
+                                                     namespace=namespace,
+                                                     resources=control_plane_resources)
         # Deploy the pageserver
-        resources.pageserver.deploy_pageserver(kube_client, namespace, pageserver_resources,
-                                                remote_storage_bucket_endpoint, remote_storage_bucket_name, 
-                                                remote_storage_bucket_region, remote_storage_prefix_in_bucket)
+        resources.pageserver.deploy_pageserver(kube_client=kube_client,
+                                               namespace=namespace,
+                                               resources=pageserver_resources,
+                                               remote_storage_endpoint=remote_storage_bucket_endpoint,
+                                               remote_storage_bucket_name=remote_storage_bucket_name,
+                                               remote_storage_bucket_region=remote_storage_bucket_region,
+                                               remote_storage_prefix_in_bucket=remote_storage_prefix_in_bucket)
         # Deploy the compute nodes
-        resources.compute_node.deploy_compute_node(kube_client, namespace, compute_node_resources)
+        resources.compute_node.deploy_compute_node(kube_client=kube_client,
+                                                   namespace=namespace,
+                                                   resources=compute_node_resources)
     except Exception as e:
         raise kopf.PermanentError(f"Failed to create NeonDeployment {namespace}/{name}: {e}")
 
 
-
-
 @kopf.on.update("neondeployments")
 def update_deployment(spec, name, namespace, **_):
-    kopf.info(spec,reason='UpdatingDeployment',message=f'Updating {namespace}/{name}.')
+    kopf.info(spec, reason='UpdatingDeployment', message=f'Updating {namespace}/{name}.')
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
     aws_access_key_id = spec.get('storageConfig').get('credentials').get('awsAccessKeyID')
@@ -225,7 +235,7 @@ def update_deployment(spec, name, namespace, **_):
     # All of the above must be present
     if remote_storage_bucket_endpoint is None or remote_storage_bucket_name is None or remote_storage_bucket_region is None or remote_storage_prefix_in_bucket is None:
         raise kopf.PermanentError(f"Storage configuration is missing for NeonDeployment {namespace}/{name}")
-    
+
     try:
         # Update the storage credentials secret
         resources.common.update_secret(kube_client, namespace, aws_access_key_id, aws_secret_access_key)
@@ -233,11 +243,11 @@ def update_deployment(spec, name, namespace, **_):
         resources.storage_broker.update_storage_broker(kube_client, namespace)
         # Update the safekeeper
         resources.safekeeper.update_safekeeper(kube_client, namespace, safekeeper_resources,
-                                                remote_storage_bucket_endpoint,
-                                                remote_storage_bucket_name,
-                                                remote_storage_bucket_region,
-                                                remote_storage_prefix_in_bucket
-                                                )
+                                               remote_storage_bucket_endpoint,
+                                               remote_storage_bucket_name,
+                                               remote_storage_bucket_region,
+                                               remote_storage_prefix_in_bucket
+                                               )
         # Update the control plane
         resources.control_plane.update_control_plane(kube_client, namespace, control_plane_resources)
         # Update the pageserver
@@ -247,9 +257,10 @@ def update_deployment(spec, name, namespace, **_):
     except Exception as e:
         raise kopf.PermanentError(f"Failed to update NeonDeployment {namespace}/{name}: {e}")
 
+
 @kopf.on.delete("neondeployments")
-def delete_deployment(spec, name, namespace,**_):
-    kopf.info(spec,reason='DeletingDeployment',message=f'Deleting {namespace}/{name}.')
+def delete_deployment(spec, name, namespace, **_):
+    kopf.info(spec, reason='DeletingDeployment', message=f'Deleting {namespace}/{name}.')
     # We delete all the deployments and services
     kubernetes.config.load_incluster_config()
     kube_client = kubernetes.client.ApiClient()
@@ -277,12 +288,15 @@ async def cleanup_fn(logger, **kwargs):
     logger.info("Cleanup completed.")
     pass
 
+
 def check_for_pageserver(kube_client, namespace, name):
-    pageserver_statefulset = kubernetes.client.AppsV1Api(kube_client).read_namespaced_stateful_set(name="pageserver", namespace=namespace)
+    pageserver_statefulset = kubernetes.client.AppsV1Api(kube_client).read_namespaced_stateful_set(name="pageserver",
+                                                                                                   namespace=namespace)
     if pageserver_statefulset is None:
         raise kopf.PermanentError(f"Pageserver statefulset is missing for NeonTimeline {namespace}/{name}")
     if pageserver_statefulset['status']['ready_replicas'] is None:
         raise kopf.PermanentError(f"Pageserver statefulset is not ready for NeonTimeline {namespace}/{name}")
-    pageserver_svc = kubernetes.client.CoreV1Api(kube_client).read_namespaced_service(name="pageserver", namespace=namespace)
+    pageserver_svc = kubernetes.client.CoreV1Api(kube_client).read_namespaced_service(name="pageserver",
+                                                                                      namespace=namespace)
     if pageserver_svc is None:
         raise kopf.PermanentError(f"Pageserver service is missing for NeonTimeline {namespace}/{name}")

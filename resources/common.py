@@ -4,6 +4,7 @@ import kopf
 import kubernetes
 from kubernetes.client import ApiException
 
+
 def deploy_secret(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
@@ -18,6 +19,7 @@ def deploy_secret(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def update_secret(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
@@ -31,6 +33,7 @@ def update_secret(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
+
 def delete_secret(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
@@ -40,6 +43,7 @@ def delete_secret(
         api_instance.delete_namespaced_secret(namespace=namespace, name="neon-storage-credentials")
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
+
 
 def neon_secret(
         namespace: str,
@@ -62,7 +66,7 @@ def neon_secret(
         data={
             "AWS_ACCESS_KEY_ID": base64.b64encode(aws_access_key_id.encode("utf-8")).decode("utf-8"),
             "AWS_SECRET_ACCESS_KEY": base64.b64encode(aws_secret_access_key.encode("utf-8")).decode("utf-8"),
-            #TODO: Add JWT Tokens for Control Plane and Proxy Server etc.,
+            # TODO: Add JWT Tokens for Control Plane and Proxy Server etc.,
         },
     )
     return secret

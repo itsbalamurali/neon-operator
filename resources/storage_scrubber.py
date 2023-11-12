@@ -1,5 +1,6 @@
 import kubernetes
 
+
 # Create CronJob for storage scrubber
 def storage_scrubber_cronjob(
         namespace: str,
@@ -91,4 +92,3 @@ def storage_scrubber_cronjob(
             ),
         ),
     )
-

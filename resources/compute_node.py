@@ -8,7 +8,7 @@ import yaml
 def deploy_compute_node(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
-        replicas: int = 3,
+        # replicas: int = 3,
         image: str = "neondatabase/compute-node-v16:latest",
         image_pull_policy: str = "Always",
         extensions_bucket: str = "neon-dev-extensions-eu-central-1",
@@ -18,7 +18,7 @@ def deploy_compute_node(
     deployment: V1StatefulSet = compute_node_deployment(namespace=namespace, image=image,
                                                         image_pull_policy=image_pull_policy,
                                                         extensions_bucket=extensions_bucket,
-                                                        replicas=replicas,
+                                                        # replicas=replicas,
                                                         extensions_bucket_region=extensions_bucket_region,
                                                         resources=resources)
     kopf.adopt(deployment)
@@ -40,7 +40,7 @@ def deploy_compute_node(
 def update_compute_node(
         kube_client: kubernetes.client.ApiClient,
         namespace: str,
-        replicas: int = 3,
+        # replicas: int = 3,
         image: str = "neondatabase/compute-node-v16:latest",
         image_pull_policy: str = "Always",
         extensions_bucket: str = "neon-dev-extensions-eu-central-1",
@@ -51,7 +51,7 @@ def update_compute_node(
                                          image=image,
                                          image_pull_policy=image_pull_policy,
                                          extensions_bucket=extensions_bucket,
-                                         replicas=replicas,
+                                         # replicas=replicas,
                                          extensions_bucket_region=extensions_bucket_region,
                                          resources=resources)
     kopf.adopt(deployment)
