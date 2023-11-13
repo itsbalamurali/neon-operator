@@ -139,7 +139,6 @@ def pageserver_statefulset(namespace: str,
                         command=[
                             "pageserver", "-D", "/data/.neon/", "-c", "id=$(POD_INDEX)", "-c",
                             "broker_endpoint='http://storage-broker." + namespace + ".svc.cluster.local:50051'",
-                            "control_plane_api='http://control-plane."+ namespace + ".svc.cluster.local:1234'",
                         ],
                         readiness_probe=kubernetes.client.V1Probe(
                             http_get=kubernetes.client.V1HTTPGetAction(
