@@ -118,6 +118,7 @@ class DeltaOperation(BaseModel):
     name: str
     new_name: Optional[str] = None
 
+
 class ComputeMode(Enum):
     """
     An enumeration representing the different compute modes.
@@ -185,7 +186,7 @@ class ControlPlaneSpecResponse(BaseModel):
 
 
 class ReAttachRequest(BaseModel):
-    node_id: str
+    node_id: int
 
 
 class ReAttachResponseTenant(BaseModel):
@@ -246,6 +247,7 @@ class AttachHookResponse(BaseModel):
 class WelcomeMessage(BaseModel):
     message: str
 
+
 oauth2_scheme = HTTPBearer()
 app = FastAPI()
 
@@ -254,20 +256,18 @@ app = FastAPI()
 def read_root() -> WelcomeMessage:
     return WelcomeMessage(message="Control Panel API is running")
 
-#re_attach_request: ReAttachRequest
+
+#
 @app.post("/re-attach")
-async def re_attach(request: Request) -> ReAttachResponse:
+async def re_attach(re_attach_request: ReAttachRequest) -> ReAttachResponse:
     """
     Re-attach is called to re-attach a tenant to a page server to aqcuire a new generation number.
     """
-    req = await request.json()
-    print(req)
-    return req
-    # print(f"Re-attaching pageserver node: {re_attach_request.node_id}")
-    # tenants = []
-    # tenants.append(ReAttachResponseTenant(id=re_attach_request.node_id, gen=1))
-    # response = ReAttachResponse(tenants=tenants)
-    # return response
+    print(f"Re-attaching pageserver node: {re_attach_request.node_id}")
+    tenants = []
+    tenants.append(ReAttachResponseTenant(id=re_attach_request.node_id, gen=1))
+    response = ReAttachResponse(tenants=tenants)
+    return response
 
 
 @app.post("/validate")
