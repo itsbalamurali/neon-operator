@@ -203,7 +203,7 @@ def pageserver_statefulset(namespace: str,
                         kubernetes.client.V1Volume(
                             name="pageserver-config-volume",
                             config_map=kubernetes.client.V1ConfigMapVolumeSource(
-                                name="pageserver-config",
+                                name="pageserver",
                                 items=[
                                     kubernetes.client.V1KeyToPath(
                                         key="pageserver.toml",
