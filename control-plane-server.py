@@ -13,17 +13,45 @@ app = FastAPI()
 
 
 class GenericOption(BaseModel):
+    """
+    Represents a generic option with a name, value, and type.
+
+    Attributes:
+        name (str): The name of the option.
+        value (Optional[str]): The value of the option. Defaults to None.
+        vartype (str): The type of the option.
+    """
     name: str
     value: Optional[str] = None
     vartype: str
 
 
 class ExtensionData(BaseModel):
+    """
+    Data model for extension data.
+
+    Attributes:
+        control_data (Dict[str, str]): A dictionary containing control data.
+        archive_path (str): The path to the archive.
+    """
     control_data: Dict[str, str]
     archive_path: str
 
 
 class RemoteExtensionSpec(BaseModel):
+    """
+    Represents the specification for remote extensions.
+
+    Attributes:
+    public_extensions: Optional[List[str]]
+        List of public extensions.
+    custom_extensions: Optional[List[str]]
+        List of custom extensions.
+    library_index: Dict[str, str]
+        Dictionary containing the library index.
+    extension_data: Dict[str, ExtensionData]
+        Dictionary containing the extension data.
+    """
     public_extensions: Optional[List[str]] = None
     custom_extensions: Optional[List[str]] = None
     library_index: Dict[str, str]
@@ -31,6 +59,16 @@ class RemoteExtensionSpec(BaseModel):
 
 
 class Role(BaseModel):
+    """
+    Represents a role in the system.
+
+    Attributes:
+        name (str): The name of the role.
+        encrypted_password (Optional[str]): The encrypted password for the role.
+        replication (Optional[bool]): Whether the role should be replicated.
+        bypassrls (Optional[bool]): Whether the role should bypass RLS.
+        options (Optional[List[GenericOption]]): A list of generic options for the role.
+    """
     name: str
     encrypted_password: Optional[str] = None
     replication: Optional[bool] = None
@@ -39,6 +77,9 @@ class Role(BaseModel):
 
 
 class Database(BaseModel):
+    """
+    Represents a database object with a name, owner, and optional list of options.
+    """
     name: str
     owner: str
     options: Optional[List[GenericOption]] = None
@@ -47,6 +88,18 @@ class Database(BaseModel):
 
 
 class Cluster(BaseModel):
+    """
+    Represents a cluster in the system.
+
+    Attributes:
+        cluster_id (str, optional): The ID of the cluster.
+        name (str, optional): The name of the cluster.
+        state (str, optional): The state of the cluster.
+        roles (List[Role]): The roles assigned to the cluster.
+        databases (List[Database]): The databases associated with the cluster.
+        postgresql_conf (str, optional): The PostgreSQL configuration for the cluster.
+        settings (List[GenericOption]): The generic options for the cluster.
+    """
     cluster_id: Optional[str] = None
     name: Optional[str] = None
     state: Optional[str] = None
@@ -57,18 +110,50 @@ class Cluster(BaseModel):
 
 
 class DeltaOperation(BaseModel):
+    """
+    Represents a delta operation that can be performed on a resource.
+
+    Attributes:
+        action (str): The action to be performed on the resource.
+        name (str): The name of the resource.
+        new_name (Optional[str], optional): The new name of the resource, if applicable.
+    """
     action: str
     name: str
     new_name: Optional[str] = None
 
-
 class ComputeMode(Enum):
+    """
+    An enumeration representing the different compute modes.
+
+    Attributes:
+        primary (str): Represents the primary compute mode.
+        replica (str): Represents the replica compute mode.
+        static (str): Represents the static compute mode.
+    """
     primary = "Primary"
     replica = "Replica"
     static = "Static"
 
 
 class ComputeSpec(BaseModel):
+    """
+    Represents the specification for a compute operation.
+
+    Attributes:
+        format_version (float): The version of the compute specification format.
+        operation_uuid (Optional[str]): The UUID of the compute operation.
+        cluster (Cluster): The cluster on which the compute operation is to be performed.
+        delta_operations (Optional[List[DeltaOperation]]): The list of delta operations to be applied.
+        skip_pg_catalog_updates (bool): Whether to skip updates to the pg_catalog table.
+        tenant_id (str): The ID of the tenant for which the compute operation is being performed.
+        timeline_id (str): The ID of the timeline for which the compute operation is being performed.
+        pageserver_connstring (str): The connection string for the page server.
+        safekeeper_connstrings (List[str]): The list of connection strings for the safekeepers.
+        mode (Optional[ComputeMode]): The mode in which the compute operation is to be performed.
+        storage_auth_token (Optional[str]): The authentication token for the storage system.
+        remote_extensions (Optional[List[RemoteExtensionSpec]]): The list of remote extensions to be applied.
+    """
     format_version: float
     operation_uuid: Optional[str] = None
     cluster: Cluster
@@ -84,11 +169,21 @@ class ComputeSpec(BaseModel):
 
 
 class ControlPlaneComputeStatus(Enum):
+    """
+    Enum class representing the status of a control plane compute instance.
+    """
     Empty = "empty"
     Attached = "attached"
 
 
 class ControlPlaneSpecResponse(BaseModel):
+    """
+    Represents the response for the control plane spec.
+
+    Attributes:
+        spec (ComputeSpec): The compute spec.
+        status (ControlPlaneComputeStatus): The control plane compute status.
+    """
     spec: ComputeSpec
     status: ControlPlaneComputeStatus
 
@@ -121,25 +216,52 @@ class ValidateResponseTenant(BaseModel):
 
 
 class ValidateResponse(BaseModel):
+    """
+    Represents the response returned by the validation API endpoint.
+
+    Attributes:
+        tenants (List[ValidateResponseTenant]): A list of tenants containing the validation results.
+    """
     tenants: List[ValidateResponseTenant]
 
 
 class AttachHookRequest(BaseModel):
+    """
+    Represents a request to attach a hook to a node.
+
+    Args:
+        tenant_id (str): The ID of the tenant.
+        node_id (str): The ID of the node to attach the hook to.
+    """
     tenant_id: str
     node_id: str
 
 
 class AttachHookResponse(BaseModel):
+    """
+    Represents the response returned by the attach hook API endpoint.
+
+    Attributes:
+        gen (int): The generation number of the hook.
+    """
     gen: int
 
 
+class WelcomeMessage(BaseModel):
+    message: str
+
+
 @app.get("/")
-def read_root():
-    return {"message": "Control Panel API is running"}
+def read_root() -> WelcomeMessage:
+    return WelcomeMessage(message="Control Panel API is running")
 
 
 @app.post("/re-attach")
-def re_attach(re_attach_request: ReAttachRequest):
+def re_attach(re_attach_request: ReAttachRequest) -> ReAttachResponse:
+    """
+    Re-attach is called to re-attach a tenant to a page server to aqcuire a new generation number.
+    """
+    print(f"Re-attaching pageserver node: {re_attach_request.node_id}")
     tenants = []
     tenants.append(ReAttachResponseTenant(id=re_attach_request.node_id, gen=1))
     response = ReAttachResponse(tenants=tenants)
@@ -147,7 +269,10 @@ def re_attach(re_attach_request: ReAttachRequest):
 
 
 @app.post("/validate")
-def validate(validate_request: ValidateRequest):
+def validate(validate_request: ValidateRequest) -> ValidateResponse:
+    """
+    Validate is called to validate the tenant generation numbers.
+    """
     tenants = []
     for tenant in validate_request.tenants:
         # TODO: get tenant from k8s resources
@@ -159,7 +284,7 @@ def validate(validate_request: ValidateRequest):
 
 
 @app.post("/attach-hook")
-def attach_hook(request: AttachHookRequest):
+def attach_hook(request: AttachHookRequest) -> AttachHookResponse:
     """
     Attach hook is called to attach a tenant to a page server to aqcuire a new generation number.
     """
@@ -180,6 +305,10 @@ def attach_hook(request: AttachHookRequest):
 
 @app.get("/compute/api/v2/computes/{compute_id}/spec")
 def get_compute_spec(compute_id: str) -> ControlPlaneSpecResponse:
+    """
+    Get compute spec is called to get the compute spec for a given compute_id
+    """
+    print(f"Getting compute spec for compute_id: {compute_id}")
     namespace = os.getenv("NAMESPACE")
     # TODO: get the compute deployment from k8s using compute_id
     # Dummy values to get the compute-node pods running
