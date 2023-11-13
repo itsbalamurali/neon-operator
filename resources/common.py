@@ -1,10 +1,13 @@
 import base64
+from typing import Optional
 
+import jwt
 import kopf
 import kubernetes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from kubernetes.client import ApiException
-import nacl.signing
-import jwt
+
 
 def deploy_secret(
         kube_client: kubernetes.client.ApiClient,
@@ -45,21 +48,17 @@ def delete_secret(
     except ApiException as e:
         print("Exception when calling Api: %s\n" % e)
 
-# Generate ed25519 keypair using pynacl
-def generate_keypair()-> (nacl.signing.SigningKey, nacl.signing.VerifyKey):
-    private_key = nacl.signing.SigningKey.generate()
-    public_key = private_key.verify_key
-    return private_key, public_key
 
-def generate_jwt(claims: dict, private_key: nacl.signing.SigningKey) -> str:
+def generate_jwt(private_key: Ed25519PrivateKey, claims: Optional[dict] = None) -> str:
     """
     Generate a JWT token using the provided claims and private key
-    :param claims:
-    :param private_key:
+    :param claims: A dictionary of claims to include in the JWT
+    :param private_key: The private key to sign the JWT with
     :return:
     """
-    jwt_token = jwt.encode({"some": "payload"}, "secret", algorithm="HS512")
+    jwt_token = jwt.encode(claims, key=private_key.encode(), algorithm="ED25519")
     return jwt_token
+
 
 def neon_secret(
         namespace: str,
@@ -68,12 +67,25 @@ def neon_secret(
 ) -> kubernetes.client.V1Secret:
     """
     Create a secret for Neon storage credentials
-    :param aws_access_key_id:
-    :param aws_secret_access_key:
-    :return:
+    :param namespace: The namespace to create the secret in
+    :param aws_access_key_id: The AWS access key ID
+    :param aws_secret_access_key: The AWS secret access key
+    :return: A kubernetes secret object
     """
 
-    (private_key, public_key) = generate_keypair()
+    private_key = Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+
+    private_key_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+    public_key_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
 
     secret = kubernetes.client.V1Secret(
         api_version="v1",
@@ -85,8 +97,8 @@ def neon_secret(
         data={
             "AWS_ACCESS_KEY_ID": base64.b64encode(aws_access_key_id.encode("utf-8")).decode("utf-8"),
             "AWS_SECRET_ACCESS_KEY": base64.b64encode(aws_secret_access_key.encode("utf-8")).decode("utf-8"),
-            "AUTH_PRIVATE_KEY": base64.b64encode(private_key.encode()).decode("utf-8"),
-            "AUTH_PUBLIC_KEY": base64.b64encode(public_key.encode()).decode("utf-8"),
+            "AUTH_PRIVATE_KEY": base64.b64encode(private_key_pem).decode("utf-8"),
+            "AUTH_PUBLIC_KEY": base64.b64encode(public_key_pem).decode("utf-8"),
         },
     )
     return secret

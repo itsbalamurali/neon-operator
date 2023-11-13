@@ -2,7 +2,6 @@
 import kopf
 import kubernetes
 from kubernetes.client import V1ResourceRequirements, ApiException, V1StatefulSet
-import yaml
 
 
 def deploy_compute_node(
@@ -127,7 +126,8 @@ def compute_node_deployment(
                                      "--pgdata", "/var/db/postgres/compute",
                                      "--connstr", "postgresql://cloud_admin@0.0.0.0:5432/postgres",
                                      "--pgbin", "/usr/local/bin/postgres",
-                                     "--remote-ext-config", f"{{\"bucket\":\"{extensions_bucket}\",\"region\":\"{extensions_bucket_region}\"}}",
+                                     "--remote-ext-config",
+                                     f"{{\"bucket\":\"{extensions_bucket}\",\"region\":\"{extensions_bucket_region}\"}}",
                                      "--control-plane-uri", f"http://control-plane.{namespace}.svc.cluster.local:1234",
                                      "--compute-id", "$(COMPUTE_ID)"],
                             readiness_probe=kubernetes.client.V1Probe(

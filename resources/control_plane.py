@@ -1,9 +1,7 @@
 # A control plane api deployment with a service.
-import kubernetes
 import kopf
-
+import kubernetes
 from kubernetes.client import V1ResourceRequirements, ApiException
-import yaml
 
 
 def deploy_control_plane(
