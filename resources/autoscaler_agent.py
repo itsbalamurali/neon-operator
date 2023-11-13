@@ -9,6 +9,14 @@ def deploy_autoscaler_agent(
         image: str = "neondatabase/neon:latest",
         replicas: int = 1,
 ):
+    """
+    Deploy the autoscaler agent to the cluster
+    :param kube_client: The kubernetes client to use
+    :param namespace: The namespace to deploy to
+    :param image: The image to use for the deployment
+    :param replicas: The number of replicas to deploy
+    :return:
+    """
     deployment = autoscaler_agent_deployment(replicas, image)
     kopf.adopt(deployment)
     apps_client = kubernetes.client.AppsV1Api(kube_client)
@@ -49,8 +57,27 @@ def delete_autoscaler_agent(
 def autoscaler_agent_deployment(
         replicas: int,
         image: str,
-):  # -> kubernetes.client.V1Deployment:
-    template = kubernetes.client.V1PodTemplateSpec(
+) -> kubernetes.client.V1Deployment:
+    """
+    Generate a deployment for the autoscaler agent
+    :param replicas: The number of replicas to deploy
+    :param image: The image to use for the deployment
+    :return: A kubernetes deployment object
+    """
+
+    deployment = kubernetes.client.V1Deployment(
+        api_version="apps/v1",
+        kind="Deployment",
+        metadata=kubernetes.client.V1ObjectMeta(
+            name="autoscaler-agent",
+            labels={"app": "autoscaler-agent"},
+        ),
+        spec=kubernetes.client.V1DeploymentSpec(
+        replicas=1,
+        selector=kubernetes.client.V1LabelSelector(
+            match_labels={"app": "autoscaler-agent"},
+        ),
+        template=kubernetes.client.V1PodTemplateSpec(
         metadata=kubernetes.client.V1ObjectMeta(
             labels={"app": "autoscaler-agent"},
         ),
@@ -69,23 +96,7 @@ def autoscaler_agent_deployment(
             ],
         ),
     )
-
-    spec = kubernetes.client.V1DeploymentSpec(
-        replicas=1,
-        selector=kubernetes.client.V1LabelSelector(
-            match_labels={"app": "autoscaler-agent"},
-        ),
-        template=template,
     )
-
-    deployment = kubernetes.client.V1Deployment(
-        api_version="apps/v1",
-        kind="Deployment",
-        metadata=kubernetes.client.V1ObjectMeta(
-            name="autoscaler-agent",
-            labels={"app": "autoscaler-agent"},
-        ),
-        spec=spec,
     )
 
     return deployment

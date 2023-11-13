@@ -56,7 +56,7 @@ def generate_jwt(private_key: Ed25519PrivateKey, claims: Optional[dict] = None) 
     :param private_key: The private key to sign the JWT with
     :return:
     """
-    jwt_token = jwt.encode(claims, key=private_key.encode(), algorithm="ED25519")
+    jwt_token = jwt.encode(claims, key=private_key, algorithm="ED25519")
     return jwt_token
 
 

@@ -139,17 +139,17 @@ def read_root():
 
 
 @app.post("/re-attach")
-def re_attach(request: ReAttachRequest):
+def re_attach(re_attach_request: ReAttachRequest):
     tenants = []
-    tenants.append(ReAttachResponseTenant(id=request.node_id, gen=1))
+    tenants.append(ReAttachResponseTenant(id=re_attach_request.node_id, gen=1))
     response = ReAttachResponse(tenants=tenants)
     return response
 
 
 @app.post("/validate")
-def validate(request: ValidateRequest):
+def validate(validate_request: ValidateRequest):
     tenants = []
-    for tenant in request.tenants:
+    for tenant in validate_request.tenants:
         # TODO: get tenant from k8s resources
         k8s_tenant = None
         valid = tenant.gen == k8s_tenant.gen

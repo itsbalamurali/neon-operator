@@ -21,6 +21,10 @@ def deploy_pageserver(
     :param resources: resource requirements for the pageserver
     :param image_pull_policy: image pull policy for the pageserver container image (default: IfNotPresent)
     :param image: pageserver container image (default: neondatabase/neon)
+    :param remote_storage_endpoint: endpoint for the remote storage
+    :param remote_storage_bucket_name: name of the remote storage bucket
+    :param remote_storage_bucket_region: region of the remote storage bucket
+    :param remote_storage_prefix_in_bucket: prefix in the remote storage bucket
     :return: if successful, returns None, otherwise returns an ApiException
     """
     deployment = pageserver_statefulset(namespace, resources, image_pull_policy, image)
@@ -55,6 +59,7 @@ def update_pageserver(
     :param resources: resource requirements for the pageserver
     :param image_pull_policy: image pull policy for the pageserver container image (default: IfNotPresent)
     :param image: pageserver container image (default: neondatabase/neon)
+    :param replicas: number of replicas to update to (default: 3)
     :return: if successful, returns None, otherwise returns an ApiException
     """
     deployment = pageserver_statefulset(namespace, resources, image_pull_policy, image)
@@ -106,6 +111,8 @@ def pageserver_statefulset(namespace: str,
     :param resources: resource requirements for the pageserver
     :param image_pull_policy: image pull policy for the pageserver container image (default: IfNotPresent)
     :param image: default pageserver container image (default: neondatabase/neon)
+    :param replicas: number of replicas to deploy (default: 1)
+    :param storage_capacity: storage capacity for the pageserver (default: 1Gi)
     :return: returns a kubernetes statefulset object
     """
 
@@ -257,6 +264,11 @@ def pageserver_statefulset(namespace: str,
 def pageserver_service(
         namespace: str,
 ) -> kubernetes.client.V1Service:
+    """
+    Creates a kubernetes service for the pageserver
+    :param namespace: namespace to deploy to
+    :return: returns a kubernetes service object
+    """
     spec = kubernetes.client.V1ServiceSpec(
         selector={"app": "pageserver"},
         ports=[
@@ -287,6 +299,15 @@ def pageserver_configmap(
         remote_storage_bucket_region: str = "eu-north-1",
         remote_storage_prefix_in_bucket: str = "/pageserver/",
 ) -> kubernetes.client.V1ConfigMap:
+    """
+    Creates a kubernetes configmap for the pageserver
+    :param namespace: namespace to deploy to
+    :param remote_storage_endpoint: endpoint for the remote storage
+    :param remote_storage_bucket_name: name of the remote storage bucket
+    :param remote_storage_bucket_region: region of the remote storage bucket
+    :param remote_storage_prefix_in_bucket: prefix in the remote storage bucket
+    :return: returns a kubernetes configmap object
+    """
     configmap = kubernetes.client.V1ConfigMap(
         api_version="v1",
         kind="ConfigMap",
