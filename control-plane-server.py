@@ -186,12 +186,12 @@ class ControlPlaneSpecResponse(BaseModel):
 
 
 class ReAttachRequest(BaseModel):
-    node_id: int
+    node_id: int | str
 
 
 class ReAttachResponseTenant(BaseModel):
-    id: str
-    gen: int
+    id: str | int
+    gen: int | str
 
 
 class ReAttachResponse(BaseModel):
@@ -199,8 +199,8 @@ class ReAttachResponse(BaseModel):
 
 
 class ValidateRequestTenant(BaseModel):
-    id: str
-    gen: int
+    id: str | int
+    gen: int | str
 
 
 class ValidateRequest(BaseModel):
@@ -208,7 +208,7 @@ class ValidateRequest(BaseModel):
 
 
 class ValidateResponseTenant(BaseModel):
-    id: str
+    id: str | int
     valid: bool
 
 
@@ -230,8 +230,8 @@ class AttachHookRequest(BaseModel):
         tenant_id (str): The ID of the tenant.
         node_id (str): The ID of the node to attach the hook to.
     """
-    tenant_id: str
-    node_id: str
+    tenant_id: str | int
+    node_id: str | int
 
 
 class AttachHookResponse(BaseModel):
@@ -241,7 +241,7 @@ class AttachHookResponse(BaseModel):
     Attributes:
         gen (int): The generation number of the hook.
     """
-    gen: int
+    gen: int | str
 
 
 class WelcomeMessage(BaseModel):
