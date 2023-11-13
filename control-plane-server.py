@@ -3,13 +3,9 @@ from enum import Enum
 from typing import Optional, List, Dict
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
-
-oauth2_scheme = HTTPBearer()
-
-app = FastAPI()
 
 
 class GenericOption(BaseModel):
@@ -250,22 +246,28 @@ class AttachHookResponse(BaseModel):
 class WelcomeMessage(BaseModel):
     message: str
 
+oauth2_scheme = HTTPBearer()
+app = FastAPI()
+
 
 @app.get("/")
 def read_root() -> WelcomeMessage:
     return WelcomeMessage(message="Control Panel API is running")
 
-
+#re_attach_request: ReAttachRequest
 @app.post("/re-attach")
-def re_attach(re_attach_request: ReAttachRequest) -> ReAttachResponse:
+async def re_attach(request: Request) -> ReAttachResponse:
     """
     Re-attach is called to re-attach a tenant to a page server to aqcuire a new generation number.
     """
-    print(f"Re-attaching pageserver node: {re_attach_request.node_id}")
-    tenants = []
-    tenants.append(ReAttachResponseTenant(id=re_attach_request.node_id, gen=1))
-    response = ReAttachResponse(tenants=tenants)
-    return response
+    req = await request.json()
+    print(req)
+    return req
+    # print(f"Re-attaching pageserver node: {re_attach_request.node_id}")
+    # tenants = []
+    # tenants.append(ReAttachResponseTenant(id=re_attach_request.node_id, gen=1))
+    # response = ReAttachResponse(tenants=tenants)
+    # return response
 
 
 @app.post("/validate")
