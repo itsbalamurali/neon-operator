@@ -1,6 +1,10 @@
 import kubernetes
 
 
+# TODO:
+#  Need to port the s3_scrubber logic for k8s based installations.
+#  Currently s3_scrubber only supports cloud based projects.
+
 # Create CronJob for storage scrubber
 def storage_scrubber_cronjob(
         namespace: str,

@@ -257,7 +257,6 @@ def read_root() -> WelcomeMessage:
     return WelcomeMessage(message="Control Panel API is running")
 
 
-#
 @app.post("/re-attach")
 async def re_attach(re_attach_request: ReAttachRequest) -> ReAttachResponse:
     """
@@ -304,6 +303,77 @@ def attach_hook(request: AttachHookRequest) -> AttachHookResponse:
 
     response = AttachHookResponse(gen=1)
     return response
+
+
+class GetRoleSecret(BaseModel):
+    """
+    Represents the response body for the get role secret endpoint.
+
+    Attributes:
+        role_secret: The role secret.
+    """
+    role_secret: str
+    allowed_ips: Optional[List[str]] = None
+
+
+# Proxy Authentication Endpoints
+@app.get("/proxy_get_role_secret")
+def proxy_get_role_secret(session_id: str, application_name: str, project: Optional[str],
+                          role: Optional[str]) -> GetRoleSecret:
+    """
+    Proxy get role secret is called to get the role secret for a given role.
+    """
+    print(f"Getting role secret for role: {role}")
+    role_secret = GetRoleSecret(role_secret="test")
+    return role_secret
+
+
+class ConsoleError(BaseModel):
+    """
+    Represents the error response for the console endpoint.
+
+    Attributes:
+        error: The error message.
+    """
+    error: str
+
+
+class MetricsAuxInfo(BaseModel):
+    """
+    This class represents auxiliary information for metrics.
+
+    Attributes:
+        endpoint_id (str): The ID of the endpoint.
+        project_id (str): The ID of the project.
+        branch_id (str): The ID of the branch.
+    """
+    endpoint_id: str
+    project_id: str
+    branch_id: str
+
+
+class WakeCompute(BaseModel):
+    """
+    Represents the request body for the wake compute endpoint.
+
+    Attributes:
+        address (str): The address of the compute node.
+        aux (MetricsAuxInfo): The auxiliary information for metrics.
+    """
+    address: str
+    aux: MetricsAuxInfo
+
+
+@app.get("/proxy_wake_compute")
+def proxy_wake_compute(session_id: str, application_name: str, project: Optional[str],
+                       options: Optional[str]) -> WakeCompute:
+    """
+    Proxy wake compute is called to wake a compute node.
+    """
+    print(f"Waking compute node")
+    wake_compute = WakeCompute(address="test",
+                               aux=MetricsAuxInfo(endpoint_id="test", project_id="test", branch_id="test"))
+    return wake_compute
 
 
 @app.get("/compute/api/v2/computes/{compute_id}/spec")

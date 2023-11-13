@@ -70,12 +70,34 @@ def proxy_server_deployment(
                 kubernetes.client.V1Container(
                     name="proxy-server",
                     image=image,
-                    command=["proxy"],
+                    command=["proxy",
+                             "-c", "server.crt",
+                                "-k", "server.key",
+                                "--auth-backend", "postgres",
+                                "--auth-endpoint", "postgres://postgres:postgres@postgres:5432/postgres",
+                                "--wss", "0.0.0.0:4432",
+                             ],
+                             env=[
+                                    kubernetes.client.V1EnvVar(
+                                        name="NEON_PROXY_TO_CONTROLPLANE_TOKEN",
+                                        value_from=kubernetes.client.V1EnvVarSource(
+                                            secret_key_ref=kubernetes.client.V1SecretKeySelector(
+                                                name="neon-storage-credentials",
+                                                key="NEON_PROXY_TO_CONTROLPLANE_TOKEN",
+                                            ),
+                                        ),
+                                    ),
+                                ],
+                            
                     ports=[
                         # proxy listens on 4432 for client connections, 7000 for management connections, 7001 for metrics etc.,
                         kubernetes.client.V1ContainerPort(
                             container_port=4432,
                             name="http",
+                        ),
+                        kubernetes.client.V1ContainerPort(
+                            container_port=5432,
+                            name="pg",
                         ),
                     ],
                     readiness_probe=kubernetes.client.V1Probe(

@@ -99,6 +99,7 @@ def neon_secret(
             "AWS_SECRET_ACCESS_KEY": base64.b64encode(aws_secret_access_key.encode("utf-8")).decode("utf-8"),
             "AUTH_PRIVATE_KEY": base64.b64encode(private_key_pem).decode("utf-8"),
             "AUTH_PUBLIC_KEY": base64.b64encode(public_key_pem).decode("utf-8"),
+            "NEON_PROXY_TO_CONTROLPLANE_TOKEN": base64.b64encode("NEED_TODO_REPLACE_WITH_JWT".encode()).decode("utf-8"),
         },
     )
     return secret
