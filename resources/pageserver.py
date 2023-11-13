@@ -292,10 +292,10 @@ auth_validation_public_key_path = '/etc/pageserver/public_key.pem'
 metric_collection_endpoint = ''
 
 [remote_storage]
-endpoint={remote_storage_endpoint}
-bucket_name={remote_storage_bucket_name}
-bucket_region={remote_storage_bucket_region}
-prefix_in_bucket={remote_storage_prefix_in_bucket}
+endpoint='{remote_storage_endpoint}'
+bucket_name='{remote_storage_bucket_name}'
+bucket_region='{remote_storage_bucket_region}'
+prefix_in_bucket='{remote_storage_prefix_in_bucket}'
     """},
     )
 
