@@ -1,14 +1,16 @@
-import kopf
 import logging
+
+import kopf
 import kubernetes
 import requests
+
+import resources.autoscaler_agent
 import resources.common
 import resources.compute_node
 import resources.control_plane
 import resources.pageserver
 import resources.safekeeper
 import resources.storage_broker
-import resources.autoscaler_agent
 
 
 @kopf.on.startup()

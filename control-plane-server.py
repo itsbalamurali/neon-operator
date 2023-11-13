@@ -1,10 +1,11 @@
 import os
+from enum import Enum
 from typing import Optional, List, Dict
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
-from enum import Enum
-import uvicorn
 
 oauth2_scheme = HTTPBearer()
 

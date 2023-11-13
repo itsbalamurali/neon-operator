@@ -195,6 +195,11 @@ def pageserver_statefulset(namespace: str,
                                 mount_path="/data/.neon/pageserver.toml",
                                 sub_path="pageserver.toml",
                             ),
+                            kubernetes.client.V1VolumeMount(
+                                name="auth-public-key-volume",
+                                mount_path="/etc/pageserver/auth_public_key.pem",
+                                sub_path="auth_public_key.pem",
+                            ),
                         ],
                         resources=resources,
                     )],
@@ -209,6 +214,16 @@ def pageserver_statefulset(namespace: str,
                                         path="pageserver.toml",
                                     )]
                             )),
+                        kubernetes.client.V1Volume(
+                            name="auth-public-key-volume",
+                            secret=kubernetes.client.V1SecretVolumeSource(
+                                secret_name="neon-storage-credentials",
+                                items=[
+                                    kubernetes.client.V1KeyToPath(
+                                        key="AUTH_PUBLIC_KEY",
+                                        path="auth_public_key.pem",
+                                    )]),
+                        ),
                         kubernetes.client.V1Volume(
                             name="pageserver-data-volume",
                             persistent_volume_claim=kubernetes.client.V1PersistentVolumeClaimVolumeSource(
@@ -287,8 +302,7 @@ control_plane_api = 'http://control-plane.{namespace}.svc.cluster.local:1234'
 control_plane_api_token = ''
 http_auth_type = 'Trust'
 pg_auth_type = 'Trust'
-auth_validation_public_key_path = '/etc/pageserver/public_key.pem'
-metric_collection_endpoint = ''
+auth_validation_public_key_path = '/etc/pageserver/auth_public_key.pem'
 
 [remote_storage]
 endpoint='{remote_storage_endpoint}'
