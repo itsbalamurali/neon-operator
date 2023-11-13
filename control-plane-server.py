@@ -236,7 +236,7 @@ class AttachHookRequest(BaseModel):
 
 class AttachHookResponse(BaseModel):
     """
-    Represents the response returned by the attach hook API endpoint.
+    Represents the response returned by the attach-hook API endpoint.
 
     Attributes:
         gen (int): The generation number of the hook.
@@ -261,11 +261,12 @@ def read_root() -> WelcomeMessage:
 @app.post("/re-attach")
 async def re_attach(re_attach_request: ReAttachRequest) -> ReAttachResponse:
     """
-    Re-attach is called to re-attach a tenant to a page server to aqcuire a new generation number.
+    Re-attach is called to re-attach a tenant to a page server to acquire a new generation number.
     """
     print(f"Re-attaching pageserver node: {re_attach_request.node_id}")
+    # TODO: needs business logic.
     tenants = []
-    tenants.append(ReAttachResponseTenant(id=re_attach_request.node_id, gen=1))
+    tenants.append(ReAttachResponseTenant(id="9ef87a5bf0d92544f6fafeeb3239695c", gen=1))
     response = ReAttachResponse(tenants=tenants)
     return response
 
@@ -279,7 +280,7 @@ def validate(validate_request: ValidateRequest) -> ValidateResponse:
     for tenant in validate_request.tenants:
         # TODO: get tenant from k8s resources
         k8s_tenant = None
-        valid = tenant.gen == k8s_tenant.gen
+        valid = True  # tenant.gen == k8s_tenant.gen
         tenants.append(ValidateResponseTenant(id=tenant.id, valid=valid))
     response = ValidateResponse(tenants=tenants)
     return response
@@ -288,7 +289,7 @@ def validate(validate_request: ValidateRequest) -> ValidateResponse:
 @app.post("/attach-hook")
 def attach_hook(request: AttachHookRequest) -> AttachHookResponse:
     """
-    Attach hook is called to attach a tenant to a page server to aqcuire a new generation number.
+    Attach hook is called to attach a tenant to a page server to acquire a new generation number.
     """
     tenant_state = None  # TODO: get tenant_state from k8s resource
     # Check if tenant exists with tenant id i.e. request.tenant_id if not create it with gen=0 with page server id
