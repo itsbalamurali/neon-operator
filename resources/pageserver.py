@@ -1,4 +1,3 @@
-# Creates a Kubernetes deployment for the pageserver using the kubernetes python client
 import kopf
 import kubernetes
 from kubernetes.client import V1ResourceRequirements, ApiException

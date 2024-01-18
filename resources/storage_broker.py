@@ -10,10 +10,11 @@ def deploy_storage_broker(
         replicas: int = 1,
         resources: V1ResourceRequirements = None,
 ):
-    deployment = storage_broker_deployment(namespace=namespace,
-                                           image=image,
-                                           replicas=replicas,
-                                           resources=resources)
+    deployment = storage_broker_deployment(
+        namespace=namespace,
+        image=image,
+        replicas=replicas,
+        resources=resources)
     service = storage_broker_service(namespace)
     kopf.adopt(deployment)
     kopf.adopt(service)
